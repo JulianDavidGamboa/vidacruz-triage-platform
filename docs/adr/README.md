@@ -9,8 +9,8 @@ Formato: contexto → decisión → alternativas → consecuencias. Cada ADR ind
 | [0002](0002-arquitectura-hexagonal.md) | Arquitectura hexagonal por servicio | Aceptada | Implementada en triage, con test ArchUnit |
 | [0003](0003-outbox-y-formato-de-eventos.md) | Transactional Outbox y formato JSON de eventos | Aceptada | Implementada (RF-01) |
 | [0004](0004-estrategia-de-escalamiento-sla.md) | Escalamiento de SLA con SQL atómico | Aceptada | Implementada (RF-03) |
-| [0005](0005-vector-store-y-anti-alucinacion.md) | Vector store en memoria y política anti-alucinación | Aceptada | Pendiente (RF-04) |
-| [0006](0006-modo-degradado-del-llm.md) | Modo degradado del LLM con circuit breaker | Aceptada | Pendiente (RF-04) |
+| [0005](0005-vector-store-y-anti-alucinacion.md) | Vector store en memoria y política anti-alucinación | Aceptada | Implementado (RF-04); compuerta por similitud y validación de fuentes con pruebas unitarias |
+| [0006](0006-modo-degradado-del-llm.md) | Modo degradado del LLM con circuit breaker | Aceptada | Implementado (RF-04); 503 verificado en IT |
 | [0007](0007-canal-de-alertas-rf06.md) | Canal de alertas al equipo médico (RF-06) | Aceptada | Pendiente (RF-06) |
 | [0008](0008-autenticacion-api-key.md) | Autenticación por API key | Aceptada | Implementada en triage |
 | [0009](0009-despliegue-aks-y-event-hubs.md) | Despliegue en AKS con servicios gestionados de Azure | Aceptada | Pendiente |

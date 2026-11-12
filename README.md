@@ -12,7 +12,7 @@ Backend reactivo (Java 21, Spring Boot 3.5, WebFlux, R2DBC, Kafka) para el triaj
 | RF-02 | Flujo de estados y consulta (`PATCH .../estado`, `GET .../{id}`) | Implementado |
 | RF-03 | Monitoreo de SLA y escalamiento automático | Implementado |
 | RF-05 | Reporte de operación por hora (SQL avanzado, [ADR-0011](docs/adr/0011-reporte-operacion-rf05.md)) | Implementado; `ReporteOperacionIT` verificado contra PostgreSQL 16 |
-| RF-04 | Asistente clínico con RAG y estado de urgencias en tiempo real | Pendiente (`assistant-service`) |
+| RF-04 | Asistente clínico con RAG y estado de urgencias en tiempo real | Implementado (`assistant-service`); ITs con Redis y HTTP verificados con Podman. Consumidor de Kafka y respuestas con LLM real sin verificar (sin clave de OpenAI) |
 | RF-06 | Alertas de escalamiento al equipo médico | Pendiente (`alert-service`) |
 | — | Manifests de Kubernetes / despliegue en Azure | Pendiente |
 
@@ -110,9 +110,9 @@ flowchart LR
     C["Cliente<br/>X-API-Key"] --> TRI
     subgraph Implementado
         TRI["triage-service<br/>WebFlux + R2DBC"]
+        AST["assistant-service<br/>RAG + Redis"]
     end
     subgraph Pendiente
-        AST["assistant-service<br/>RAG + Redis"]
         ALR["alert-service<br/>alertas RF-06"]
     end
     TRI --> PG[("PostgreSQL<br/>pacientes · auditoría · outbox")]

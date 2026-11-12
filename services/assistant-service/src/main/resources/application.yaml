@@ -1,3 +1,38 @@
 spring:
   application:
     name: assistant-service
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  ai:
+    openai:
+      api-key: ${LLM_API_KEY:}
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0
+      embedding:
+        options:
+          model: text-embedding-3-small
+
+assistant:
+  api-key: ${API_KEY:}
+  rag:
+    top-k: 3
+    similarity-threshold: 0.75
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:29092}
+    topic: triaje.eventos
+  mensajeria:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
