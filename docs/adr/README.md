@@ -15,7 +15,7 @@ Formato: contexto → decisión → alternativas → consecuencias. Cada ADR ind
 | [0008](0008-autenticacion-api-key.md) | Autenticación por API key | Aceptada | Implementada en triage |
 | [0009](0009-despliegue-aks-y-event-hubs.md) | Despliegue en AKS con servicios gestionados de Azure | Aceptada | Pendiente |
 | [0010](0010-version-spring-boot-3-5.md) | Spring Boot 3.5 y Spring AI 1.1.x | Aceptada | Aplicada en el pom padre |
-| [0011](0011-reporte-operacion-rf05.md) | Reporte de operación por hora con SQL agregado | Aceptada | Implementada (RF-05); IT pendiente de ejecutar con Docker |
+| [0011](0011-reporte-operacion-rf05.md) | Reporte de operación por hora con SQL agregado | Aceptada | Implementada (RF-05); `ReporteOperacionIT` verificado con PostgreSQL 16 |
 
 ## Plantilla
 

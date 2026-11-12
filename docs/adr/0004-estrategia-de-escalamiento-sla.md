@@ -21,7 +21,7 @@ WITH vencidos AS (
     FOR UPDATE SKIP LOCKED
 )
 UPDATE pacientes p
-SET escalado = TRUE, fecha_escalado = now()
+SET escalado = TRUE, fecha_escalado = :ahora
 FROM vencidos v WHERE p.id = v.id
 RETURNING p.id, p.nivel;
 ```

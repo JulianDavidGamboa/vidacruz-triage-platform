@@ -2,7 +2,7 @@
 
 - **Estado:** Aceptada
 - **Fecha:** 2026-11-11
-- **Implementación:** Implementada (RF-05): `ReporteOperacionR2dbcAdapter`, `ReporteOperacionService` y `ReporteController`. El `ReporteOperacionIT` está escrito pero no se ha ejecutado, porque requiere Docker.
+- **Implementación:** Implementada (RF-05): `ReporteOperacionR2dbcAdapter`, `ReporteOperacionService` y `ReporteController`. El `ReporteOperacionIT` se ejecutó contra PostgreSQL 16 (3 de 3 pasan), con Podman como runtime de contenedores.
 
 ## Contexto
 
@@ -28,4 +28,4 @@ RF-05 pide un reporte `GET /triage/reportes/operacion?desde=...&hasta=...` agrup
 - (+) La agregación no depende del número de registros en memoria: el costo crece con el tamaño del rango, no con el tamaño de la aplicación.
 - (−) `percentile_cont` ordena los tiempos de espera del rango; el costo es proporcional a los pacientes de esa ventana.
 - (−) La franja es UTC fijo. Un reporte para hora local de Colombia (UTC-5) necesitaría un parámetro de zona horaria; hoy no se pide.
-- (−) El SQL solo se ha validado compilando y con pruebas unitarias del servicio. El `ReporteOperacionIT` contra PostgreSQL real debe ejecutarse con Docker antes de dar el requisito por verificado.
+- (+) El SQL se verificó contra PostgreSQL 16 con `ReporteOperacionIT`. El costo con volumen real no se ha medido.

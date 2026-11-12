@@ -2,7 +2,7 @@
 
 Backend reactivo (Java 21, Spring Boot 3.5, WebFlux, R2DBC, Kafka) para el triaje de urgencias de VidaCruz: registra pacientes, los clasifica con reglas clínicas objetivas, controla los tiempos de atención (SLA), escala automáticamente a quienes los superan y deja auditoría clínica completa. Un segundo servicio ofrece un asistente clínico con RAG que solo responde con contenido de los protocolos oficiales.
 
-> Prueba técnica "Dev. WebFlux" (nivel Senior / Arquitecto). El enunciado está en [`docs/enunciado-prueba.md`](docs/enunciado-prueba.md) y la especificación completa en [`docs/especificacion.md`](docs/especificacion.md).
+> Prueba técnica "Dev. WebFlux" (nivel Senior / Arquitecto). El enunciado está en `enunciado-prueba-dev-webflux.md`, en la raíz del repositorio.
 
 ## Estado
 
@@ -11,7 +11,7 @@ Backend reactivo (Java 21, Spring Boot 3.5, WebFlux, R2DBC, Kafka) para el triaj
 | RF-01 | Registro y clasificación automática (`POST /triage/pacientes`) | Implementado |
 | RF-02 | Flujo de estados y consulta (`PATCH .../estado`, `GET .../{id}`) | Implementado |
 | RF-03 | Monitoreo de SLA y escalamiento automático | Implementado |
-| RF-05 | Reporte de operación por hora (SQL avanzado, [ADR-0011](docs/adr/0011-reporte-operacion-rf05.md)) | Implementado; `ReporteOperacionIT` pendiente de ejecutar con Docker |
+| RF-05 | Reporte de operación por hora (SQL avanzado, [ADR-0011](docs/adr/0011-reporte-operacion-rf05.md)) | Implementado; `ReporteOperacionIT` verificado contra PostgreSQL 16 |
 | RF-04 | Asistente clínico con RAG y estado de urgencias en tiempo real | Pendiente (`assistant-service`) |
 | RF-06 | Alertas de escalamiento al equipo médico | Pendiente (`alert-service`) |
 | — | Manifests de Kubernetes / despliegue en Azure | Pendiente |
@@ -21,8 +21,8 @@ Hoy el repositorio contiene `triage-service` y el módulo `events-contract`. Los
 ## Requisitos
 
 - Java 21
-- Docker (para ejecutar el sistema y las pruebas de integración con Testcontainers)
-- Maven Wrapper en la raíz (`mvnw` y `.mvn/`). Si no están, genéralos una vez con `mvn -N wrapper:wrapper`; el `Dockerfile` los necesita.
+- Docker, o Podman para las pruebas de integración (Testcontainers). Con Podman, expón su API compatible con Docker y apunta `DOCKER_HOST` a ella.
+- Maven Wrapper: hoy está en `services/triage-service/mvnw`. La raíz del repositorio aún no tiene `mvnw` (ver Limitaciones).
 
 ## Ejecución local
 
@@ -91,8 +91,8 @@ docker compose -f deploy/docker/docker-compose.yml exec kafka /opt/kafka/bin/kaf
 ## Pruebas
 
 ```bash
-./mvnw test      # unitarias y de arquitectura (no requieren Docker)
-./mvnw verify    # además las de integración *IT (requieren Docker)
+./services/triage-service/mvnw -f pom.xml -pl services/triage-service -am test     # unitarias y de arquitectura (sin contenedores)
+./services/triage-service/mvnw -f pom.xml -pl services/triage-service -am test -Dtest='*IT' -Dsurefire.failIfNoSpecifiedTests=false   # integración (Docker o Podman)
 ```
 
 | Tipo | Qué cubre |
@@ -154,4 +154,5 @@ Documentadas como ADR en [`docs/adr/`](docs/adr/README.md). Las que ya están en
 - El `correlationId` viaja por el Reactor Context y se guarda en la auditoría y en los eventos, pero todavía no se propaga al MDC de los logs.
 - La tabla `outbox_events` crece: falta una política de limpieza de eventos ya publicados.
 - `/actuator/prometheus` exige la API key; hay que configurar el scrape en el despliegue.
-- El código se escribió sin acceso a Maven Central ni Docker. Antes de entregar, ejecuta `./mvnw verify` y corrige los ajustes menores de compilación que aparezcan.
+- La raíz no tiene `mvnw` ni Failsafe: `verify` no ejecuta los `*IT`. Se corren con `-Dtest='*IT'` como arriba.
+- Las pruebas de integración se verificaron con Podman (API compatible con Docker expuesta por TCP en la VM), no con Docker Desktop. Última corrida: 175 pruebas en verde (149 unitarias, 6 de arquitectura y 26 de integración, con `TriageServiceApplicationTests` incluido).
