@@ -7,26 +7,32 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.testcontainers.containers.FixedHostPortGenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.util.Map;
 import java.util.UUID;
 
-/** PostgreSQL y Kafka reales compartidos por las pruebas de integración (requiere Docker), más helpers comunes. */
-@Testcontainers
+/**
+ * PostgreSQL y Kafka reales compartidos por todas las pruebas de integración (requiere Docker o Podman).
+ *
+ * <p>Los contenedores son singleton de la JVM y no se detienen entre clases: Spring cachea el contexto entre
+ * clases y su pool de conexiones R2DBC apunta al host y puerto del primer contenedor. Si cada clase levantara
+ * el suyo, una clase posterior podría reutilizar un contexto cuyo Postgres ya está detenido.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class IntegrationTestBase {
 
     protected static final String API_KEY = "test-api-key";
 
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
-    @Container
-    static KafkaContainer kafka = new KafkaContainer("apache/kafka:3.9.0");
+    static final FixedHostPortGenericContainer<?> kafka = KafkaKraftContainer.crear();
+
+    static {
+        postgres.start();
+        kafka.start();
+    }
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
@@ -39,7 +45,7 @@ public abstract class IntegrationTestBase {
         registry.add("spring.flyway.url", postgres::getJdbcUrl);
         registry.add("spring.flyway.user", postgres::getUsername);
         registry.add("spring.flyway.password", postgres::getPassword);
-        registry.add("triage.kafka.bootstrap-servers", kafka::getBootstrapServers);
+        registry.add("triage.kafka.bootstrap-servers", KafkaKraftContainer::bootstrapServers);
         registry.add("triage.api-key", () -> API_KEY);
     }
 

@@ -1,68 +1,18 @@
 package com.vidacruz.triage_service.integration;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.r2dbc.core.DatabaseClient;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.reactive.server.WebTestClient;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-/** Flujo completo de RF-01 contra PostgreSQL y Kafka reales (requiere Docker). */
-@Testcontainers
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class RegistroPacienteIT {
-
-    private static final String API_KEY = "test-api-key";
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
-
-    @Container
-    static KafkaContainer kafka = new KafkaContainer("apache/kafka:3.9.0");
-
-    @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry registry) {
-        String host = postgres.getHost();
-        int port = postgres.getMappedPort(5432);
-        registry.add("spring.r2dbc.url", () -> "r2dbc:postgresql://%s:%d/%s".formatted(host, port, postgres.getDatabaseName()));
-        registry.add("spring.r2dbc.username", postgres::getUsername);
-        registry.add("spring.r2dbc.password", postgres::getPassword);
-        registry.add("spring.flyway.url", postgres::getJdbcUrl);
-        registry.add("spring.flyway.user", postgres::getUsername);
-        registry.add("spring.flyway.password", postgres::getPassword);
-        registry.add("triage.kafka.bootstrap-servers", kafka::getBootstrapServers);
-        registry.add("triage.api-key", () -> API_KEY);
-    }
-
-    @Autowired WebTestClient web;
-    @Autowired DatabaseClient db;
-
-    private static Map<String, Object> pacienteE1() {
-        return Map.of(
-                "nombreCompleto", "Carlos Gómez",
-                "edad", 55,
-                "frecuenciaCardiaca", 130,
-                "presionSistolica", 180,
-                "presionDiastolica", 110,
-                "spo2", 97,
-                "temperatura", 36.8,
-                "dolor", 8,
-                "gcs", 15,
-                "quejaPrincipal", "Dolor torácico");
-    }
+/** Flujo completo de RF-01 contra PostgreSQL y Kafka reales. */
+class RegistroPacienteIT extends IntegrationTestBase {
 
     @Test
     void registraPacienteCriticoConAuditoriaYEventoPublicado() {
@@ -103,7 +53,7 @@ class RegistroPacienteIT {
 
     @Test
     void valorFueraDeRangoDevuelve400IndicandoElCampo() {
-        Map<String, Object> invalido = new java.util.HashMap<>(pacienteE1());
+        Map<String, Object> invalido = new HashMap<>(pacienteE1());
         invalido.put("frecuenciaCardiaca", 300);
 
         web.post().uri("/triage/pacientes")
@@ -119,7 +69,7 @@ class RegistroPacienteIT {
 
     @Test
     void diastolicaMayorQueSistolicaDevuelve400() {
-        Map<String, Object> invalido = new java.util.HashMap<>(pacienteE1());
+        Map<String, Object> invalido = new HashMap<>(pacienteE1());
         invalido.put("presionSistolica", 100);
         invalido.put("presionDiastolica", 110);
 
@@ -167,14 +117,6 @@ class RegistroPacienteIT {
     }
 
     private UUID registrarYObtenerId() {
-        String id = web.post().uri("/triage/pacientes")
-                .header("X-API-Key", API_KEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(pacienteE1())
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(Map.class)
-                .returnResult().getResponseBody().get("id").toString();
-        return UUID.fromString(id);
+        return UUID.fromString(registrar(pacienteE1()));
     }
 }
