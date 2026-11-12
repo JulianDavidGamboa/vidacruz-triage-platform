@@ -39,6 +39,8 @@ public class SlaMonitorScheduler {
     @EventListener(ApplicationReadyEvent.class)
     void start() {
         subscription = Flux.interval(props.sla().evaluationInterval())
+                // Un ciclo lento no encola ticks atrasados: sin esto, el overflow termina el monitor en silencio
+                .onBackpressureDrop()
                 .concatMap(tick -> escalar.ejecutar()
                         // Un identificador por ejecución: agrupa en logs y auditoría las escalas de un mismo ciclo
                         .contextWrite(ctx -> ctx.put(CorrelationContext.KEY, "sla-" + UUID.randomUUID()))
