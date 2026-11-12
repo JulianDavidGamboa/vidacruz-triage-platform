@@ -46,6 +46,14 @@ public class GlobalErrorHandler {
         return problem;
     }
 
+    /** 400: el rango de un reporte no es válido (desde debe ser anterior a hasta). */
+    @ExceptionHandler(RangoReporteInvalidoException.class)
+    public ProblemDetail handleRangoInvalido(RangoReporteInvalidoException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("Rango de reporte inválido");
+        return problem;
+    }
+
     /** 404: el paciente no existe. */
     @ExceptionHandler(PacienteNoEncontradoException.class)
     public ProblemDetail handleNoEncontrado(PacienteNoEncontradoException ex) {
