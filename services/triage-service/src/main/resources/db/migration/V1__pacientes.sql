@@ -1,0 +1,22 @@
+CREATE TABLE pacientes (
+    id                      UUID             PRIMARY KEY,
+    nombre                  VARCHAR(100)     NOT NULL,
+    edad                    INTEGER          NOT NULL CHECK (edad BETWEEN 0 AND 120),
+    fc                      INTEGER          NOT NULL CHECK (fc BETWEEN 20 AND 250),
+    p_sistolica             INTEGER          NOT NULL CHECK (p_sistolica BETWEEN 60 AND 260),
+    p_diastolica            INTEGER          NOT NULL CHECK (p_diastolica BETWEEN 30 AND 160),
+    spo2                    INTEGER          NOT NULL CHECK (spo2 BETWEEN 70 AND 100),
+    temperatura             DOUBLE PRECISION NOT NULL CHECK (temperatura BETWEEN 34.0 AND 42.0),
+    dolor                   INTEGER          NOT NULL CHECK (dolor BETWEEN 0 AND 10),
+    gcs                     INTEGER          NOT NULL CHECK (gcs BETWEEN 3 AND 15),
+    queja_principal         TEXT             NOT NULL,
+    nivel                   INTEGER          NOT NULL CHECK (nivel BETWEEN 1 AND 5),
+    sla_minutos             INTEGER          NOT NULL CHECK (sla_minutos > 0),
+    estado                  VARCHAR(20)      NOT NULL CHECK (estado IN ('REGISTRADO', 'EN_CONSULTA', 'ALTA')),
+    escalado                BOOLEAN          NOT NULL DEFAULT FALSE,
+    fecha_registro          TIMESTAMPTZ      NOT NULL,
+    fecha_estado            TIMESTAMPTZ      NOT NULL,
+    fecha_escalado          TIMESTAMPTZ,
+    fecha_primera_consulta  TIMESTAMPTZ,
+    CONSTRAINT chk_diastolica_menor_sistolica CHECK (p_diastolica < p_sistolica)
+);
