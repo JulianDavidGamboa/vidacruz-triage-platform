@@ -1,6 +1,7 @@
 package com.vidacruz.triage_service.infrastructure.config;
 
 import com.vidacruz.triage_service.domain.service.TriageClassifier;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.ReactiveTransactionManager;
@@ -9,6 +10,7 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 import java.time.Clock;
 
 @Configuration
+@EnableConfigurationProperties(TriageProperties.class)
 public class AppConfig {
 
     /** Reloj inyectable: permite fijar el tiempo en los tests. */
