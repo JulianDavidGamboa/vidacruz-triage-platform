@@ -1,7 +1,5 @@
 package com.vidacruz.events_contract;
 
-import jdk.jfr.EventType;
-
 import java.time.Instant;
 import java.util.UUID;
 
