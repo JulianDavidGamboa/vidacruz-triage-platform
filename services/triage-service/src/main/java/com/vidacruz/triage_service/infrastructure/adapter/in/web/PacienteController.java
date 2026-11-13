@@ -33,7 +33,7 @@ public class PacienteController {
         this.consultarPaciente = consultarPaciente;
     }
 
-    /** RF-01: registra, clasifica (RN-01) y devuelve id, nivel, SLA, estado y fecha. */
+    /** Registra, clasifica y devuelve id, nivel, SLA, estado y fecha. */
     @PostMapping
     public Mono<ResponseEntity<PacienteResponse>> registrar(@Valid @RequestBody RegistrarPacienteRequest request) {
         return registrarPaciente.registrar(PacienteWebMapper.toCommand(request))
@@ -42,7 +42,7 @@ public class PacienteController {
                         .body(PacienteWebMapper.toResponse(paciente)));
     }
 
-    /** RF-02: transición de estado. 200 si es válida, 409 si no lo es, 404 si el paciente no existe. */
+    /** Transición de estado. 200 si es válida, 409 si no lo es, 404 si el paciente no existe. */
     @PatchMapping("/{id}/estado")
     public Mono<PacienteDetalleResponse> cambiarEstado(@PathVariable UUID id,
                                                        @Valid @RequestBody CambiarEstadoRequest request) {
@@ -51,7 +51,7 @@ public class PacienteController {
                 .map(paciente -> PacienteWebMapper.toDetalle(new PacienteVista(paciente, 0)));
     }
 
-    /** RF-02: datos completos, estado actual, flags (escalado) y tiempo en el estado actual. */
+    /** Datos completos, estado actual, flags (escalado) y tiempo en el estado actual. */
     @GetMapping("/{id}")
     public Mono<PacienteDetalleResponse> consultar(@PathVariable UUID id) {
         return consultarPaciente.obtener(id).map(PacienteWebMapper::toDetalle);

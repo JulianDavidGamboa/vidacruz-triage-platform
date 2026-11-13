@@ -62,7 +62,7 @@ public class GlobalErrorHandler {
         return problem;
     }
 
-    /** 409: transición no permitida (RF-02) o cambio concurrente de estado. */
+    /** 409: transición no permitida o cambio concurrente de estado. */
     @ExceptionHandler({TransicionInvalidaException.class, EstadoConcurrenteException.class})
     public ProblemDetail handleConflicto(DomainException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());

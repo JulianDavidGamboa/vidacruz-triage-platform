@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Relay del Transactional Outbox (ADR-0003): publica en {@code triaje.eventos} los eventos pendientes y los marca
+ * Relay del Transactional Outbox: publica en {@code triaje.eventos} los eventos pendientes y los marca
  * como publicados.
  *
  * <p>Garantías: at-least-once. {@code published_at} se escribe solo tras el ack de Kafka, en la misma transacción

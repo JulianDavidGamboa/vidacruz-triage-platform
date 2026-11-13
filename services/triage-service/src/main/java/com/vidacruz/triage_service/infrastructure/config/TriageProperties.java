@@ -15,7 +15,7 @@ public record TriageProperties(
         @DefaultValue Outbox outbox) {
 
     /**
-     * minutos: claves = nombre exacto del enum. evaluationInterval: cada cuánto corre el monitor (RF-03).
+     * minutos: claves = nombre exacto del enum. evaluationInterval: cada cuánto corre el monitor.
      * monitorEnabled: permite apagar el scheduler (las pruebas de integración lo apagan y llaman al caso de uso).
      */
     public record Sla(

@@ -20,7 +20,7 @@ public class ReporteController {
         this.reportes = reportes;
     }
 
-    /** RF-05: {@code GET /triage/reportes/operacion?desde=...&hasta=...} con instantes ISO 8601. */
+    /** {@code GET /triage/reportes/operacion?desde=...&hasta=...} con instantes ISO 8601. */
     @GetMapping("/operacion")
     public Mono<ReporteOperacionVista> operacion(@RequestParam Instant desde, @RequestParam Instant hasta) {
         return reportes.generar(desde, hasta);

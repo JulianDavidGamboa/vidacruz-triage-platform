@@ -12,7 +12,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/** RN-02: los SLA vienen de la configuración y deben estar completos y ser positivos. */
+/** Los SLA vienen de la configuración y deben estar completos y ser positivos. */
 class ConfiguredSlaPolicyTest {
 
     private static TriageProperties props(Map<NivelTriaje, Integer> minutos) {

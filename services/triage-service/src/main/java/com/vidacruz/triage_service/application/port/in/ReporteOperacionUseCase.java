@@ -4,7 +4,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 
-/** RF-05: reporte de operación agrupado por hora de registro. */
+/** Reporte de operación agrupado por hora de registro. */
 public interface ReporteOperacionUseCase {
 
     Mono<ReporteOperacionVista> generar(Instant desde, Instant hasta);

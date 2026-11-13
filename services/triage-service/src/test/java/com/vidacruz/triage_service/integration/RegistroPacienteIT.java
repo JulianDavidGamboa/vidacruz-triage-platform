@@ -11,7 +11,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-/** Flujo completo de RF-01 contra PostgreSQL y Kafka reales. */
+/** Flujo completo de registro contra PostgreSQL y Kafka reales. */
 class RegistroPacienteIT extends IntegrationTestBase {
 
     @Test

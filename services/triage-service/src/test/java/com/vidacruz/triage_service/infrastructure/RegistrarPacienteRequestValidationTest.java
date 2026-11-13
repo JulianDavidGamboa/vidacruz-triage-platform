@@ -15,7 +15,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Validaciones de datos de RF-01 (tabla "Validaciones de datos" del enunciado). */
+/** Validaciones de datos (tabla "Validaciones de datos" del enunciado). */
 class RegistrarPacienteRequestValidationTest {
 
     private static ValidatorFactory factory;

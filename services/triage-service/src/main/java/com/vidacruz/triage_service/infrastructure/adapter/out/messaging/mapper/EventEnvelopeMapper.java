@@ -5,7 +5,7 @@ import com.vidacruz.events_contract.EventType;
 import com.vidacruz.events_contract.PacienteEventPayload;
 import com.vidacruz.triage_service.domain.model.EventoClinico;
 
-/** Traduce el hecho clínico del dominio al envelope público de {@code triaje.eventos} (ADR-0003). */
+/** Traduce el hecho clínico del dominio al envelope público de {@code triaje.eventos}. */
 public final class EventEnvelopeMapper {
 
     private EventEnvelopeMapper() {
@@ -16,7 +16,9 @@ public final class EventEnvelopeMapper {
                 evento.pacienteId(),
                 evento.nivel().codigo(),
                 evento.estadoAnterior() == null ? null : evento.estadoAnterior().name(),
-                evento.estadoNuevo().name());
+                evento.estadoNuevo().name(),
+                evento.slaMinutos(),
+                evento.fechaRegistro());
 
         return new EventEnvelope(
                 evento.eventId(),

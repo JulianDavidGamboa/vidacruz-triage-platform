@@ -15,7 +15,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * RF-05. Toda la agregación ocurre en PostgreSQL: CTE para calcular la espera por paciente, {@code FILTER}
+ * Toda la agregación ocurre en PostgreSQL: CTE para calcular la espera por paciente, {@code FILTER}
  * para el conteo por nivel, {@code percentile_cont} para el p95 y {@code RANK() OVER} para el ranking de
  * volumen por hora. Los pacientes sin consulta aportan a los totales pero no a los tiempos de espera.
  */

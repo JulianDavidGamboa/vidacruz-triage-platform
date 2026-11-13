@@ -18,7 +18,7 @@ import java.util.UUID;
 
 
 /**
- * RF-03: adaptador de entrada que dispara el escalamiento periódicamente. concatMap evita que dos
+ * Adaptador de entrada que dispara el escalamiento periódicamente. concatMap evita que dos
  * ejecuciones se solapen dentro de la misma instancia; entre réplicas lo resuelve SKIP LOCKED.
  */
 @Component

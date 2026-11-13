@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-/** RN-04: solo inserta. La tabla tiene un trigger que rechaza UPDATE y DELETE. */
+/** Solo inserta. La tabla tiene un trigger que rechaza UPDATE y DELETE. */
 @Component
 public class AuditoriaR2dbcAdapter implements AuditPort {
 

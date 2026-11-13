@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
 /**
- * RF-05 contra PostgreSQL real. Usa una ventana de 2031 para no chocar con otras pruebas de la misma base.
+ * Contra PostgreSQL real. Usa una ventana de 2031 para no chocar con otras pruebas de la misma base.
  * Hora 10:00 → 3 registros (esperas 10, 30 y sin consulta). Hora 11:00 → 1 registro (espera 2).
  * El registro de las 12:00 cae justo en {@code hasta}, que es exclusivo, y no debe aparecer.
  */

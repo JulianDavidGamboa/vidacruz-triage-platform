@@ -22,7 +22,7 @@ final class KafkaKraftContainer {
     }
 
     static FixedHostPortGenericContainer<?> crear() {
-        return new FixedHostPortGenericContainer<>(IMAGEN)
+        FixedHostPortGenericContainer<?> kafka = new FixedHostPortGenericContainer<>(IMAGEN)
                 .withFixedExposedPort(PUERTO_HOST, 9092)
                 .withEnv("KAFKA_NODE_ID", "1")
                 .withEnv("KAFKA_PROCESS_ROLES", "broker,controller")
@@ -36,6 +36,8 @@ final class KafkaKraftContainer {
                 .withEnv("KAFKA_TRANSACTION_STATE_LOG_MIN_ISR", "1")
                 .withEnv("KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS", "0")
                 .waitingFor(Wait.forLogMessage(".*Kafka Server started.*", 1));
+        Runtime.getRuntime().addShutdownHook(new Thread(kafka::stop));
+        return kafka;
     }
 
     static String bootstrapServers() {

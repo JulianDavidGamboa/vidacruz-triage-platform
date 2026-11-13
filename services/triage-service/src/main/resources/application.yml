@@ -37,7 +37,7 @@ triage:
     poll-interval: 500ms
     batch-size: 100
   sla:
-    minutos:                      # RN-02 — la clave es el nombre exacto del enum
+    minutos:                      # la clave es el nombre exacto del enum
       CRITICO: 5
       URGENTE: 10
       URGENTE_2: 30

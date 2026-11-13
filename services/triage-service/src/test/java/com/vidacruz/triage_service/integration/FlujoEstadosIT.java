@@ -8,7 +8,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-/** RF-02 de extremo a extremo: transiciones, 409, GET, auditoría y eventos en Kafka. */
+/** Transiciones, 409, GET, auditoría y eventos en Kafka de extremo a extremo. */
 class FlujoEstadosIT extends IntegrationTestBase {
 
     @Test

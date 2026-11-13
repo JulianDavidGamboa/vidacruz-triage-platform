@@ -32,7 +32,7 @@ class TransicionesEstadoTest {
                 NivelTriaje.CRITICO, 5, REGISTRO);
     }
 
-    // ───────── matriz de transiciones (RF-02) ─────────
+    // ───────── matriz de transiciones ─────────
 
     @ParameterizedTest(name = "{0} → {1} es válida")
     @CsvSource({"REGISTRADO, EN_CONSULTA", "REGISTRADO, ALTA", "EN_CONSULTA, ALTA"})

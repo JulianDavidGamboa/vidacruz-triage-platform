@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.util.EnumMap;
 import java.util.Map;
 
-/** RN-02 leída de application.yml. Falla al arrancar si falta algún nivel o el valor no es positivo. */
+/** SLA leído de application.yml. Falla al arrancar si falta algún nivel o el valor no es positivo. */
 @Component
 public class ConfiguredSlaPolicy implements SlaPolicy {
 

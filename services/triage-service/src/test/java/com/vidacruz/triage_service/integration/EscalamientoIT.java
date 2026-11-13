@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
- * RF-03 / RN-03 contra PostgreSQL y Kafka reales. El scheduler se apaga y el caso de uso se invoca
+ * Contra PostgreSQL y Kafka reales. El scheduler se apaga y el caso de uso se invoca
  * directamente con un reloj controlable: se prueba el límite exacto del SLA sin esperar minutos.
  */
 @TestPropertySource(properties = "triage.sla.monitor-enabled=false")

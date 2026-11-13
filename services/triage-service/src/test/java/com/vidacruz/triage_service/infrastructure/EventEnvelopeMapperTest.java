@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vidacruz.events_contract.EventEnvelope;
 import com.vidacruz.events_contract.EventType;
+import com.vidacruz.triage_service.domain.model.Escalamiento;
 import com.vidacruz.triage_service.domain.model.EventoClinico;
 import com.vidacruz.triage_service.domain.model.NivelTriaje;
 import com.vidacruz.triage_service.domain.model.Paciente;
@@ -41,13 +42,30 @@ class EventEnvelopeMapperTest {
 
         assertThat(envelope.eventId()).isEqualTo(e.eventId());
         assertThat(envelope.type()).isEqualTo(EventType.PACIENTE_REGISTRADO);
-        assertThat(envelope.version()).isEqualTo(1);
+        assertThat(envelope.version()).isEqualTo(2);
         assertThat(envelope.occurredAt()).isEqualTo(e.ocurridoEn());
         assertThat(envelope.correlationId()).isEqualTo("cid-42");
         assertThat(envelope.payload().pacienteId()).isEqualTo(e.pacienteId());
         assertThat(envelope.payload().nivel()).isEqualTo(1);
         assertThat(envelope.payload().estadoAnterior()).isNull();
         assertThat(envelope.payload().estadoNuevo()).isEqualTo("REGISTRADO");
+        assertThat(envelope.payload().slaMinutos()).isEqualTo(5);
+        assertThat(envelope.payload().fechaRegistro()).isEqualTo(Instant.parse("2026-10-29T14:00:00Z"));
+    }
+
+    @Test
+    void elEscalamientoLlevaSlaYFechaDeRegistroParaQueLaAlertaCalculeLosMinutos() {
+        Instant registro = Instant.parse("2026-10-29T14:00:00Z");
+        EventoClinico e = EventoClinico.escalamiento(
+                new Escalamiento(UUID.randomUUID(), NivelTriaje.URGENTE, 30, registro,
+                        Instant.parse("2026-10-29T15:12:00Z")),
+                "cid-7");
+
+        EventEnvelope envelope = EventEnvelopeMapper.toEnvelope(e);
+
+        assertThat(envelope.type()).isEqualTo(EventType.PACIENTE_ESCALADO);
+        assertThat(envelope.payload().slaMinutos()).isEqualTo(30);
+        assertThat(envelope.payload().fechaRegistro()).isEqualTo(registro);
     }
 
     @Test
@@ -57,12 +75,14 @@ class EventEnvelopeMapperTest {
         JsonNode tree = json.readTree(json.writeValueAsString(envelope));
 
         assertThat(tree.get("type").asText()).isEqualTo("paciente_registrado");
-        assertThat(tree.get("version").asInt()).isEqualTo(1);
+        assertThat(tree.get("version").asInt()).isEqualTo(2);
         assertThat(tree.get("occurredAt").asText()).isEqualTo("2026-10-29T14:00:00Z");
         assertThat(tree.get("correlationId").asText()).isEqualTo("cid-42");
         assertThat(tree.get("payload").get("nivel").asInt()).isEqualTo(1);
         assertThat(tree.get("payload").get("estadoNuevo").asText()).isEqualTo("REGISTRADO");
         assertThat(tree.get("payload").get("estadoAnterior").isNull()).isTrue();
+        assertThat(tree.get("payload").get("slaMinutos").asInt()).isEqualTo(5);
+        assertThat(tree.get("payload").get("fechaRegistro").asText()).isEqualTo("2026-10-29T14:00:00Z");
     }
 
     @Test

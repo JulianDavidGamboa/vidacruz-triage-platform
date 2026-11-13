@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Hecho clínico ocurrido (registro, consulta, escalamiento, alta). Alimenta tanto la auditoría (RN-04)
+ * Hecho clínico ocurrido (registro, consulta, escalamiento, alta). Alimenta tanto la auditoría
  * como el evento de integración que se publica en Kafka.
  */
 public record EventoClinico(
@@ -14,27 +14,32 @@ public record EventoClinico(
         NivelTriaje nivel,
         EstadoPaciente estadoAnterior,   // null en el registro
         EstadoPaciente estadoNuevo,
+        int slaMinutos,                  // congelado al registrar
+        Instant fechaRegistro,
         Instant ocurridoEn,
         String correlationId) {
 
     public static EventoClinico registro(Paciente paciente, String correlationId) {
         return new EventoClinico(UUID.randomUUID(), TipoEvento.PACIENTE_REGISTRADO, paciente.id(),
-                paciente.nivel(), null, paciente.estado(), paciente.fechaRegistro(), correlationId);
+                paciente.nivel(), null, paciente.estado(), paciente.slaMinutos(), paciente.fechaRegistro(),
+                paciente.fechaRegistro(), correlationId);
     }
 
-    /** RF-02: evento de una transición válida (entrada a consulta o alta). */
+    /** Evento de una transición válida (entrada a consulta o alta). */
     public static EventoClinico cambioEstado(Paciente anterior, Paciente nuevo, String correlationId) {
         return new EventoClinico(UUID.randomUUID(), tipoParaEstado(nuevo.estado()), nuevo.id(),
-                nuevo.nivel(), anterior.estado(), nuevo.estado(), nuevo.fechaEstado(), correlationId);
+                nuevo.nivel(), anterior.estado(), nuevo.estado(), nuevo.slaMinutos(), nuevo.fechaRegistro(),
+                nuevo.fechaEstado(), correlationId);
     }
 
     /**
-     * RF-03: el paciente sigue en REGISTRADO; cambia el flag de escalamiento. Por eso el estado anterior
+     * El paciente sigue en REGISTRADO; cambia el flag de escalamiento. Por eso el estado anterior
      * y el nuevo coinciden, y la auditoría registra el tipo de evento.
      */
     public static EventoClinico escalamiento(Escalamiento e, String correlationId) {
         return new EventoClinico(UUID.randomUUID(), TipoEvento.PACIENTE_ESCALADO, e.pacienteId(), e.nivel(),
-                EstadoPaciente.REGISTRADO, EstadoPaciente.REGISTRADO, e.fechaEscalado(), correlationId);
+                EstadoPaciente.REGISTRADO, EstadoPaciente.REGISTRADO, e.slaMinutos(), e.fechaRegistro(),
+                e.fechaEscalado(), correlationId);
     }
 
     private static TipoEvento tipoParaEstado(EstadoPaciente estado) {
@@ -46,4 +51,3 @@ public record EventoClinico(
         };
     }
 }
-

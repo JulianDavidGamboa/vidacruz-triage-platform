@@ -13,9 +13,8 @@ import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
- * RF-03 / RN-03 (ADR-0004): una sola sentencia marca y devuelve los escalados. {@code FOR UPDATE SKIP LOCKED}
- * evita que dos instancias escalen al mismo paciente, y la condición del WHERE hace la operación idempotente.
- * A diferencia del ADR, la fecha de escalamiento llega como {@code :ahora} desde {@code ClockPort}, no de now().
+ * Una sola sentencia marca y devuelve los escalados. {@code FOR UPDATE SKIP LOCKED} evita que dos instancias
+ * escalen al mismo paciente, y la condición del WHERE hace la operación idempotente.
  */
 @Component
 public class EscalamientoR2dbcAdapter implements EscalamientoRepositoryPort {

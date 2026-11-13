@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * RN-01 — Clasificación por nivel de triaje.
  * Las reglas se evalúan en orden de gravedad; la primera que se cumple determina el nivel, de modo
  * que si se cumplen condiciones de varios niveles rige el más grave. Es una clase pura (sin Spring).
  */

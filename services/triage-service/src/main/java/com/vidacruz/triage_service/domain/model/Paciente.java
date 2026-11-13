@@ -45,8 +45,8 @@ public record Paciente(
     }
 
     /**
-     * RF-02: aplica una transición válida y devuelve un nuevo paciente (inmutable).
-     * La primera entrada a consulta se fija una sola vez; es la base del tiempo de espera del reporte (RF-05).
+     * Aplica una transición válida y devuelve un nuevo paciente (inmutable).
+     * La primera entrada a consulta se fija una sola vez; es la base del tiempo de espera del reporte.
      */
     public Paciente cambiarEstado(EstadoPaciente destino, Instant ahora) {
         Objects.requireNonNull(destino, "estado destino requerido");
@@ -62,7 +62,7 @@ public record Paciente(
     }
 
     /**
-     * RF-03 / RN-02 / RN-03: regla de escalamiento. Es la referencia que implementa el UPDATE de
+     * Regla de escalamiento. Es la referencia que implementa el UPDATE de
      * EscalamientoR2dbcAdapter; el test de integración verifica que ambos coinciden en el límite.
      * Solo aplica a pacientes en REGISTRADO, sin escalar, cuyo SLA venció estrictamente antes de {@code ahora}.
      */

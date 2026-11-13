@@ -14,7 +14,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** RF-03 / RN-02 / RN-03 en el dominio. */
+/** Escalamiento en el dominio. */
 class EscalamientoDominioTest {
 
     private static final Instant T0 = Instant.parse("2026-10-29T14:00:00Z");

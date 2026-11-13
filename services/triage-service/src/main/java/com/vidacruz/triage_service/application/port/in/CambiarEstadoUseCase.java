@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface CambiarEstadoUseCase {
 
-    /** RF-02: aplica una transición válida, audita y publica el evento. */
+    /** Aplica una transición válida, audita y publica el evento. */
     Mono<Paciente> cambiar(UUID pacienteId, EstadoPaciente destino);
 }
