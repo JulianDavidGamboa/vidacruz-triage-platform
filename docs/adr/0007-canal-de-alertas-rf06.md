@@ -2,7 +2,7 @@
 
 - **Estado:** Aceptada
 - **Fecha:** 2026-11-10
-- **Implementación:** Pendiente (RF-06, `alert-service`)
+- **Implementación:** Implementada (RF-06, `alert-service`). Pruebas unitarias, ArchUnit y arranque de contexto en verde; el consumidor de Kafka y el webhook real de Teams no están verificados (sin broker ni URL de webhook en este entorno)
 
 ## Contexto
 
@@ -26,6 +26,19 @@ RF-06 exige alertar al equipo médico cuando un paciente es escalado, pero no es
 ### Contenido de la alerta
 
 Solo identificadores y datos operativos, **sin datos personales ni clínicos**: id del paciente, nivel de triaje, SLA configurado, minutos excedidos y marca de tiempo. El personal consulta el detalle mediante la API autenticada de triaje.
+
+### Contrato ampliado (envelope version 2)
+
+- `PacienteEventPayload` añade `slaMinutos` y `fechaRegistro`. Triaje los publica en todos los eventos del paciente, tomados de `Paciente` o `Escalamiento` (ADR-0004: el SLA se congela al registrar).
+- Son nulos en mensajes version 1. Los consumidores deben tolerarlo: `alert-service` envía la alerta sin minutos excedidos cuando faltan.
+- `alert-service` calcula los minutos excedidos al momento del escalamiento: `ocurridoEn - (fechaRegistro + slaMinutos)`, nunca negativo.
+
+### Desviaciones de la implementación
+
+- **Marca de tiempo:** es `occurredAt` del evento, no la hora de envío.
+- **Caché de deduplicación:** en memoria, acotada por `alert.dedupe-capacity` (10 000 por defecto).
+- **Reintentos:** 3 intentos en total (2 reintentos con backoff de 200 ms) y timeout de 10 s por intento. Un circuito abierto no reintenta.
+- **Sin webhook configurado** (`TEAMS_WEBHOOK_URL` vacío): la alerta solo queda en log y no va al DLT, porque es el modo local esperado.
 
 ## Supuestos
 
