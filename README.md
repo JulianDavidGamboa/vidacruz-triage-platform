@@ -173,7 +173,7 @@ Documentadas como ADR en [`docs/adr/`](docs/adr/README.md). Las que ya están en
 - El `correlationId` viaja por el Reactor Context y se guarda en la auditoría y en los eventos, pero todavía no se propaga al MDC de los logs.
 - La tabla `outbox_events` crece: falta una política de limpieza de eventos ya publicados.
 - `/actuator/prometheus` exige la API key; hay que configurar el scrape en el despliegue.
-- El corpus de protocolos del asistente se carga una sola vez al arrancar, con un único intento y 60 s de tope. Si OpenRouter tarda más (el modelo de embeddings gratuito puede hacerlo), el asistente responde 503 hasta reiniciar el pod. Falta un reintento con espera creciente.
+- El corpus de protocolos del asistente se carga al arrancar con hasta 6 reintentos (espera de 5 s a 60 s, 60 s de tope por intento). Si el proveedor de embeddings sigue sin responder tras agotarlos, el asistente responde 503 hasta reiniciar el pod.
 - En Kubernetes hay que mantener `enableServiceLinks: false` en los Deployment: de lo contrario, el Service `redis` inyecta `REDIS_PORT=tcp://...` y rompe la propiedad `spring.data.redis.port`.
 - La raíz no tiene `mvnw` ni Failsafe: `verify` no ejecuta los `*IT`. Se corren con `-Dtest='*IT'` como arriba.
 - Las pruebas de integración se verificaron con Podman (API compatible con Docker expuesta por TCP en la VM), no con Docker Desktop. Última corrida: 175 pruebas en verde (149 unitarias, 6 de arquitectura y 26 de integración, con `TriageServiceApplicationTests` incluido).
