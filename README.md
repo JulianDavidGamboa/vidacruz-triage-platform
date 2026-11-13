@@ -161,7 +161,7 @@ vidacruz-triage-platform/
 
 Documentadas como ADR en [`docs/adr/`](docs/adr/README.md). Las que ya están en código:
 
-- **Transactional Outbox (ADR-0003):** paciente, auditoría y evento se escriben en una sola transacción; un relay reactivo publica a Kafka con entrega at-least-once. Los consumidores deduplican por `eventId`.
+- **Transactional Outbox (ADR-0003):** paciente, auditoría y evento se escriben en una sola transacción; un relay reactivo publica a Kafka con entrega at-least-once. Los consumidores deduplican por `eventId`. Las filas ya publicadas se borran pasados 7 días (`triage.outbox.retention`, `triage.outbox.purge-interval`; se apaga con `triage.outbox.purge-enabled=false`). El `correlationId` se guarda en la auditoría y en los eventos, y se copia al MDC mediante la propagación de contexto de Reactor, para que lo incluyan los logs JSON.
 - **Escalamiento atómico (ADR-0004):** un único `UPDATE ... RETURNING` con `FOR UPDATE SKIP LOCKED`. La idempotencia (RN-03) la garantiza la condición del `WHERE`, también con varias réplicas.
 - **Control optimista de estados:** el `UPDATE` incluye el estado esperado en el `WHERE`; un cambio concurrente responde 409 sin auditar ni publicar.
 - **Auditoría inmutable (RN-04):** tabla append-only con un trigger que rechaza `UPDATE` y `DELETE`; no existe endpoint de borrado.
@@ -170,8 +170,6 @@ Documentadas como ADR en [`docs/adr/`](docs/adr/README.md). Las que ya están en
 
 ## Limitaciones conocidas
 
-- El `correlationId` viaja por el Reactor Context y se guarda en la auditoría y en los eventos, pero todavía no se propaga al MDC de los logs.
-- La tabla `outbox_events` crece: falta una política de limpieza de eventos ya publicados.
 - `/actuator/prometheus` exige la API key; hay que configurar el scrape en el despliegue.
 - El corpus de protocolos del asistente se carga al arrancar con hasta 6 reintentos (espera de 5 s a 60 s, 60 s de tope por intento). Si el proveedor de embeddings sigue sin responder tras agotarlos, el asistente responde 503 hasta reiniciar el pod.
 - En Kubernetes hay que mantener `enableServiceLinks: false` en los Deployment: de lo contrario, el Service `redis` inyecta `REDIS_PORT=tcp://...` y rompe la propiedad `spring.data.redis.port`.
