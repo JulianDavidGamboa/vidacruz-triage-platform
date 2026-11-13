@@ -10,7 +10,7 @@ param acrName string
 param aksName string = 'vidacruz-aks'
 
 @description('Tamaño de las máquinas del clúster. Verifica que tu suscripción lo permita en la región elegida.')
-param nodeVmSize string = 'Standard_B2s'
+param nodeVmSize string = 'Standard_D2as_v4'
 
 @description('Cantidad de nodos.')
 @minValue(1)

@@ -48,14 +48,13 @@ jobs:
         run: az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$AKS_NAME"
 
       - name: Apply manifests
-        run: kubectl apply -k deploy/k8s/overlays/azure
+        run: |
+          kubectl kustomize deploy/k8s/overlays/azure \
+            | sed -E "s#(${ACR_NAME}\.azurecr\.io/[a-z-]+):latest#\1:${{ github.sha }}#" \
+            | kubectl apply -f -
 
-      - name: Roll out the new images
+      - name: Wait for the rollout
         run: |
           for service in triage-service assistant-service alert-service; do
-            kubectl -n vidacruz set image "deployment/$service" \
-              "$service=$ACR_NAME.azurecr.io/$service:${{ github.sha }}"
-          done
-          for service in triage-service assistant-service alert-service; do
-            kubectl -n vidacruz rollout status "deployment/$service" --timeout=300s
+            kubectl -n vidacruz rollout status "deployment/$service" --timeout=600s
           done
