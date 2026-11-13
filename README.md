@@ -13,7 +13,7 @@ Backend reactivo (Java 21, Spring Boot 3.5, WebFlux, R2DBC, Kafka) para el triaj
 | RF-03 | Monitoreo de SLA y escalamiento automático | Implementado |
 | RF-05 | Reporte de operación por hora (SQL avanzado, [ADR-0011](docs/adr/0011-reporte-operacion-rf05.md)) | Implementado; `ReporteOperacionIT` verificado contra PostgreSQL 16 |
 | RF-04 | Asistente clínico con RAG y estado de urgencias en tiempo real | Implementado (`assistant-service`); ITs con Redis y HTTP verificados con Podman. Consumidor de Kafka y respuestas con LLM real sin verificar (sin clave de OpenAI) |
-| RF-06 | Alertas de escalamiento al equipo médico | Pendiente (`alert-service`) |
+| RF-06 | Alertas de escalamiento al equipo médico | Implementado (`alert-service`): webhook de Teams con respaldo en log y DLT (ADR-0007). Webhook real y consumidor de Kafka sin verificar. El evento `paciente_escalado` lleva SLA y fecha de registro (contrato version 2) |
 | — | Manifests de Kubernetes / despliegue en Azure | Pendiente |
 
 Hoy el repositorio contiene `triage-service` y el módulo `events-contract`. Los otros dos servicios están diseñados en los [ADR](docs/adr/README.md) y aún no tienen código. El `docker-compose.yml` ya los declara, por lo que solo `triage-service` y su infraestructura se pueden levantar por ahora.
@@ -111,8 +111,6 @@ flowchart LR
     subgraph Implementado
         TRI["triage-service<br/>WebFlux + R2DBC"]
         AST["assistant-service<br/>RAG + Redis"]
-    end
-    subgraph Pendiente
         ALR["alert-service<br/>alertas RF-06"]
     end
     TRI --> PG[("PostgreSQL<br/>pacientes · auditoría · outbox")]
