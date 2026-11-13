@@ -1,6 +1,6 @@
 # ADR-0009 — Despliegue en AKS con servicios gestionados de Azure
 
-- **Estado:** Aceptada
+- **Estado:** Reemplazada parcialmente por ADR-0012 (servicios de datos)
 - **Fecha:** 2026-11-10
 - **Implementación:** Pendiente. Docker Compose local ya definido; manifests e IaC por crear.
 
