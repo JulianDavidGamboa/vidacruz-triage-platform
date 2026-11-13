@@ -2,7 +2,7 @@
 
 Backend reactivo (Java 21, Spring Boot 3.5, WebFlux, R2DBC, Kafka) para el triaje de urgencias de VidaCruz: registra pacientes, los clasifica con reglas clínicas objetivas, controla los tiempos de atención (SLA), escala automáticamente a quienes los superan y deja auditoría clínica completa. Un segundo servicio ofrece un asistente clínico con RAG que solo responde con contenido de los protocolos oficiales.
 
-> Prueba técnica "Dev. WebFlux" (nivel Senior / Arquitecto). El enunciado está en `enunciado-prueba-dev-webflux.md`, en la raíz del repositorio.
+> Prueba técnica "Dev. WebFlux" (nivel Senior / Arquitecto). Las decisiones de diseño están en los [ADR](docs/adr/README.md).
 
 ## Estado
 
@@ -12,11 +12,11 @@ Backend reactivo (Java 21, Spring Boot 3.5, WebFlux, R2DBC, Kafka) para el triaj
 | RF-02 | Flujo de estados y consulta (`PATCH .../estado`, `GET .../{id}`) | Implementado |
 | RF-03 | Monitoreo de SLA y escalamiento automático | Implementado |
 | RF-05 | Reporte de operación por hora (SQL avanzado, [ADR-0011](docs/adr/0011-reporte-operacion-rf05.md)) | Implementado; `ReporteOperacionIT` verificado contra PostgreSQL 16 |
-| RF-04 | Asistente clínico con RAG y estado de urgencias en tiempo real | Implementado (`assistant-service`); ITs con Redis y HTTP verificados con Podman. Consumidor de Kafka y respuestas con LLM real sin verificar (sin clave de OpenAI) |
-| RF-06 | Alertas de escalamiento al equipo médico | Implementado (`alert-service`): webhook de Teams con respaldo en log y DLT (ADR-0007). Webhook real y consumidor de Kafka sin verificar. El evento `paciente_escalado` lleva SLA y fecha de registro (contrato version 2) |
-| — | Manifests de Kubernetes / despliegue en Azure | Pendiente |
+| RF-04 | Asistente clínico con RAG y estado de urgencias en tiempo real | Implementado (`assistant-service`). ITs con Redis, HTTP y consumidor de Kafka verificados con Podman. En AKS, la vista de urgencias se alimenta de Kafka (verificado). Las respuestas con LLM real dependen de OpenRouter (ver Limitaciones) |
+| RF-06 | Alertas de escalamiento al equipo médico | Implementado (`alert-service`): webhook de Teams con respaldo en log y DLT (ADR-0007). Consumidor de Kafka verificado en AKS con alerta en el log de respaldo; webhook de Teams real sin verificar. El evento `paciente_escalado` lleva SLA y fecha de registro (contrato version 2) |
+| — | Manifests de Kubernetes y despliegue en Azure | Implementado y desplegado en AKS ([ADR-0012](docs/adr/0012-servicios-de-datos-en-el-cluster.md)); ver [Despliegue en Azure](#despliegue-en-azure) |
 
-Hoy el repositorio contiene `triage-service` y el módulo `events-contract`. Los otros dos servicios están diseñados en los [ADR](docs/adr/README.md) y aún no tienen código. El `docker-compose.yml` ya los declara, por lo que solo `triage-service` y su infraestructura se pueden levantar por ahora.
+Los tres servicios y el módulo `events-contract` están en el repositorio. El `docker-compose.yml` levanta toda la plataforma en local.
 
 ## Requisitos
 
@@ -28,13 +28,10 @@ Hoy el repositorio contiene `triage-service` y el módulo `events-contract`. Los
 
 ```bash
 cp .env.example .env          # completa DB_PASSWORD y API_KEY
-docker compose -f deploy/docker/docker-compose.yml --env-file .env up --build \
-  postgres kafka kafka-init redis triage-service
+docker compose -f deploy/docker/docker-compose.yml --env-file .env up --build
 ```
 
-Cuando existan los tres servicios, el comando de un solo paso será el mismo sin indicar servicios.
-
-Levanta PostgreSQL, Kafka (modo KRaft), la creación de los topics, Redis y `triage-service` en `http://localhost:8081`. Flyway crea el esquema al arrancar.
+Levanta PostgreSQL, Kafka (modo KRaft), la creación de los topics, Redis y los tres servicios: triaje en `http://localhost:8081`, asistente en `8082` y alertas en `8083`. Flyway crea el esquema al arrancar. Para levantar solo el triaje, indica los servicios al final del comando: `postgres kafka kafka-init redis triage-service`.
 
 ### Variables de entorno
 
@@ -88,6 +85,25 @@ docker compose -f deploy/docker/docker-compose.yml exec kafka /opt/kafka/bin/kaf
   --bootstrap-server kafka:9092 --topic triaje.eventos --from-beginning
 ```
 
+## Despliegue en Azure
+
+Los tres servicios corren en AKS, con PostgreSQL, Kafka y Redis dentro del clúster ([ADR-0012](docs/adr/0012-servicios-de-datos-en-el-cluster.md)). La infraestructura (ACR y AKS) se crea con Bicep y los manifests viven en `deploy/k8s/` (Kustomize: `base`, `data` y `overlays/azure`). La guía paso a paso está en [`deploy/azure/README.md`](deploy/azure/README.md).
+
+- **CI** (`.github/workflows/ci.yml`): corre las pruebas unitarias y de integración en cada push y pull request.
+- **CD** (`.github/workflows/deploy.yml`): manual. Ejecuta el CI, construye las tres imágenes con la etiqueta del commit, las sube a ACR y aplica el overlay `azure`.
+
+Para obtener la dirección pública y probar:
+
+```bash
+az aks get-credentials -g vidacruz-rg -n vidacruz-aks
+IP=$(kubectl -n vidacruz get ingress vidacruz -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+curl -s -H "X-API-Key: <API_KEY>" http://$IP/asistente/estado-urgencias
+```
+
+Rutas: `/triage/...` llega al triaje y `/asistente/...` al asistente. El servicio de alertas no tiene entrada pública.
+
+El despliegue es una demostración: el tráfico va por HTTP sin TLS y los servicios de datos no tienen alta disponibilidad ni respaldos. No es apto para datos clínicos reales.
+
 ## Pruebas
 
 ```bash
@@ -132,8 +148,13 @@ vidacruz-triage-platform/
 │       ├── domain/                 # Modelo, invariantes y reglas (sin frameworks)
 │       ├── application/            # Casos de uso (port.in) y puertos de salida (port.out)
 │       └── infrastructure/         # REST, scheduler, R2DBC, outbox/Kafka, seguridad, métricas
+├── services/assistant-service/     # Asistente RAG y vista de urgencias (misma estructura hexagonal)
+├── services/alert-service/         # Alertas de escalamiento (misma estructura hexagonal)
 ├── deploy/docker/                  # docker-compose.yml y Dockerfile genérico
-└── docs/                           # Enunciado, especificación y ADR
+├── deploy/k8s/                     # Kustomize: base, data y overlays/azure
+├── deploy/azure/                   # Bicep (ACR y AKS) y guía de despliegue
+├── .github/workflows/              # CI y despliegue manual a AKS
+└── docs/adr/                       # Decisiones de arquitectura
 ```
 
 ## Decisiones clave
@@ -152,5 +173,7 @@ Documentadas como ADR en [`docs/adr/`](docs/adr/README.md). Las que ya están en
 - El `correlationId` viaja por el Reactor Context y se guarda en la auditoría y en los eventos, pero todavía no se propaga al MDC de los logs.
 - La tabla `outbox_events` crece: falta una política de limpieza de eventos ya publicados.
 - `/actuator/prometheus` exige la API key; hay que configurar el scrape en el despliegue.
+- El corpus de protocolos del asistente se carga una sola vez al arrancar, con un único intento y 60 s de tope. Si OpenRouter tarda más (el modelo de embeddings gratuito puede hacerlo), el asistente responde 503 hasta reiniciar el pod. Falta un reintento con espera creciente.
+- En Kubernetes hay que mantener `enableServiceLinks: false` en los Deployment: de lo contrario, el Service `redis` inyecta `REDIS_PORT=tcp://...` y rompe la propiedad `spring.data.redis.port`.
 - La raíz no tiene `mvnw` ni Failsafe: `verify` no ejecuta los `*IT`. Se corren con `-Dtest='*IT'` como arriba.
 - Las pruebas de integración se verificaron con Podman (API compatible con Docker expuesta por TCP en la VM), no con Docker Desktop. Última corrida: 175 pruebas en verde (149 unitarias, 6 de arquitectura y 26 de integración, con `TriageServiceApplicationTests` incluido).

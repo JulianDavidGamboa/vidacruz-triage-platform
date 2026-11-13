@@ -2,7 +2,7 @@
 
 - **Estado:** Aceptada
 - **Fecha:** 2026-11-12
-- **Implementación:** Pendiente. Manifests en `deploy/k8s/data/`; sin desplegar ni verificar en un clúster real.
+- **Implementación:** Desplegada y verificada en AKS (2026-11-13). Manifests en `deploy/k8s/data/`. Se comprobó el flujo registro, outbox, Kafka, vista del asistente en Redis, escalamiento por SLA y alerta.
 
 ## Contexto
 

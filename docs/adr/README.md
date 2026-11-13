@@ -16,7 +16,7 @@ Formato: contexto → decisión → alternativas → consecuencias. Cada ADR ind
 | [0009](0009-despliegue-aks-y-event-hubs.md) | Despliegue en AKS con servicios gestionados de Azure | Reemplazada parcialmente por ADR-0012 | Pendiente |
 | [0010](0010-version-spring-boot-3-5.md) | Spring Boot 3.5 y Spring AI 1.1.x | Aceptada | Aplicada en el pom padre |
 | [0011](0011-reporte-operacion-rf05.md) | Reporte de operación por hora con SQL agregado | Aceptada | Implementada (RF-05); `ReporteOperacionIT` verificado con PostgreSQL 16 |
-| [0012](0012-servicios-de-datos-en-el-cluster.md) | Servicios de datos dentro del clúster AKS | Aceptada | Pendiente; manifests en `deploy/k8s/data/`, sin desplegar |
+| [0012](0012-servicios-de-datos-en-el-cluster.md) | Servicios de datos dentro del clúster AKS | Aceptada | Desplegada y verificada en AKS; manifests en `deploy/k8s/data/` |
 
 ## Plantilla
 
