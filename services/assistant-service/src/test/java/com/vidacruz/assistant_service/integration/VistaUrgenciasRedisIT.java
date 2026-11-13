@@ -10,7 +10,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** El Redis es compartido entre pruebas, así que cada una compara contra su propio estado inicial. */
 class VistaUrgenciasRedisIT extends IntegrationTestBase {
 
     @Autowired

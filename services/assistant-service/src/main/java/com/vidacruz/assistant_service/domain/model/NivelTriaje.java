@@ -1,6 +1,5 @@
 package com.vidacruz.assistant_service.domain.model;
 
-/** Niveles de triaje (RN-01). Mismos códigos que el servicio de triaje y que el contrato de eventos. */
 public enum NivelTriaje {
     CRITICO(1),
     URGENTE(2),

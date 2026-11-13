@@ -20,10 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Carga el corpus en el vector store al arrancar. Las llamadas al proveedor de embeddings bloquean, así que van en
- * boundedElastic. Si la carga falla, el servicio arranca igual y la consulta responde 503 (ADR-0006).
- */
 @Component
 public class ProtocolCorpusLoader {
 

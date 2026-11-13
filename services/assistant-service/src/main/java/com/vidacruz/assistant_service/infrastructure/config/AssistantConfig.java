@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(AssistantProperties.class)
 public class AssistantConfig {
 
-    /** Vector store en memoria (ADR-0005). Se reconstruye al arrancar desde resources/protocolos. */
     @Bean
     VectorStore vectorStore(EmbeddingModel embeddingModel) {
         return SimpleVectorStore.builder(embeddingModel).build();

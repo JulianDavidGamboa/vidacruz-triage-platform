@@ -17,7 +17,6 @@ import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 
-/** Recuperación con SimpleVectorStore. La consulta embebe la pregunta, así que pasa por el circuito de embeddings. */
 @Component
 public class SimpleVectorProtocolRetriever implements ProtocolRetrieverPort {
 

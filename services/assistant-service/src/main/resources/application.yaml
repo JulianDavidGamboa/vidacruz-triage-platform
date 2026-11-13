@@ -7,14 +7,15 @@ spring:
       port: ${REDIS_PORT:6379}
   ai:
     openai:
+      base-url: ${LLM_BASE_URL:https://openrouter.ai/api}
       api-key: ${LLM_API_KEY:}
       chat:
         options:
-          model: gpt-4o-mini
+          model: ${LLM_CHAT_MODEL:openrouter/free}
           temperature: 0
       embedding:
         options:
-          model: text-embedding-3-small
+          model: ${LLM_EMBEDDING_MODEL:nvidia/llama-nemotron-embed-vl-1b-v2:free}
 
 assistant:
   api-key: ${API_KEY:}

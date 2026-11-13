@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
-/** Traduce los errores a RFC 7807. El modo degradado responde 503 con un mensaje claro (ADR-0006). */
 @RestControllerAdvice
 public class GlobalErrorHandler {
 

@@ -3,7 +3,6 @@ package com.vidacruz.assistant_service.domain.model;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Hecho de triaje que afecta a la vista de urgencias. */
 public record EventoPaciente(UUID eventId, TipoEvento tipo, UUID pacienteId, NivelTriaje nivel) {
 
     public EventoPaciente {

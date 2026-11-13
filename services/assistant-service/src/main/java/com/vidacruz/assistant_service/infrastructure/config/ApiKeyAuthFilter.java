@@ -16,10 +16,6 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
-/**
- * Autenticación por API key (header X-API-Key), comparada en tiempo constante. Los probes de health quedan públicos.
- * Mismo mecanismo que triage-service. No es un @Component: lo registra {@link SecurityConfig} como filtro de Security.
- */
 public class ApiKeyAuthFilter implements WebFilter {
 
     public static final String HEADER = "X-API-Key";

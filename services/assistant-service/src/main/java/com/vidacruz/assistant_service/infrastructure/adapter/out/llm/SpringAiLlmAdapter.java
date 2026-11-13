@@ -19,7 +19,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Chat con Spring AI. Temperatura 0 y prompt que obliga a citar el contexto (RN-05). */
 @Component
 public class SpringAiLlmAdapter implements LlmPort {
 

@@ -48,6 +48,17 @@ class AsistenteHttpIT extends IntegrationTestBase {
     }
 
     @Test
+    void documentacionOpenApiListaLosEndpointsConLaApiKey() {
+        client.get().uri("/v3/api-docs")
+                .header("X-API-Key", "test-key")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.paths['/asistente/consulta']").exists()
+                .jsonPath("$.paths['/asistente/estado-urgencias']").exists();
+    }
+
+    @Test
     void healthEsPublico() {
         client.get().uri("/actuator/health")
                 .exchange()

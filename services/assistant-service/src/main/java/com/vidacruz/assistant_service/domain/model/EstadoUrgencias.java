@@ -4,7 +4,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-/** Pacientes activos (no dados de alta) por nivel de triaje. Todos los niveles aparecen, aunque sea con cero. */
 public record EstadoUrgencias(Map<NivelTriaje, Long> porNivel) {
 
     public EstadoUrgencias {

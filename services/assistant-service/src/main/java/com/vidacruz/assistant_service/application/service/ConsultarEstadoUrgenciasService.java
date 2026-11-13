@@ -6,7 +6,6 @@ import com.vidacruz.assistant_service.domain.model.EstadoUrgencias;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-/** RF-04 parte B: lee la vista que mantiene el consumidor de triaje.eventos. No llama a la API de triaje. */
 @Service
 public class ConsultarEstadoUrgenciasService implements ConsultarEstadoUrgenciasUseCase {
 

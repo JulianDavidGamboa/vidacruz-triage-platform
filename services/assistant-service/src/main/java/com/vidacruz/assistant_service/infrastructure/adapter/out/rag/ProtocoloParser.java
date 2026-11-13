@@ -5,11 +5,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Parte un protocolo en fragmentos, uno por viñeta ({@code - **Sección:** texto}). El identificador y el título salen
- * de la primera línea de encabezado. Cada fragmento lleva el protocolo y el título en el texto, para que la búsqueda
- * encuentre también preguntas por el nombre de la enfermedad.
- */
 final class ProtocoloParser {
 
     private static final Pattern ID = Pattern.compile("PROTO-\\d{3}");

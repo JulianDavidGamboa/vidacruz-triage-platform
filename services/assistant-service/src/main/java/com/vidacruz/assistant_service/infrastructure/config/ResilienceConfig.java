@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 
-/** Circuitos del modo degradado (ADR-0006). Los fallos de cuota o de timeout cuentan; las respuestas válidas no. */
 @Configuration
 public class ResilienceConfig {
 

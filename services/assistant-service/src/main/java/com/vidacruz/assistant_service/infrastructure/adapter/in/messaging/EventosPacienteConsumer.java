@@ -28,11 +28,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Consume triaje.eventos y mantiene la vista de urgencias. El offset se confirma después de procesar cada registro.
- * Si el procesamiento falla tres veces, el registro se descarta con un log de error: todavía no hay topic de
- * dead-letter, y eso queda como limitación documentada.
- */
 @Component
 @ConditionalOnProperty(name = "assistant.mensajeria.enabled", havingValue = "true", matchIfMissing = true)
 public class EventosPacienteConsumer {

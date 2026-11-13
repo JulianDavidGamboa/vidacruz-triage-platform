@@ -7,11 +7,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/**
- * Base de los ITs. Redis corre en un contenedor compartido por la JVM. El proveedor de IA recibe una clave ficticia:
- * el corpus nunca se carga en las pruebas, así que el modo degradado es determinista y no depende de red.
- * Kafka queda desactivado; el consumidor se prueba con el caso de uso, no con un broker.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "assistant.api-key=test-key",
         "assistant.mensajeria.enabled=false",

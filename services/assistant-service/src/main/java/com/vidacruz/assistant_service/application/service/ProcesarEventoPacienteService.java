@@ -6,10 +6,6 @@ import com.vidacruz.assistant_service.domain.model.EventoPaciente;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-/**
- * Traduce cada evento a la vista. Un paciente está activo desde el registro hasta el alta: escalar no lo cambia,
- * porque el escalamiento es un flag y el estado sigue en REGISTRADO.
- */
 @Service
 public class ProcesarEventoPacienteService implements ProcesarEventoPacienteUseCase {
 

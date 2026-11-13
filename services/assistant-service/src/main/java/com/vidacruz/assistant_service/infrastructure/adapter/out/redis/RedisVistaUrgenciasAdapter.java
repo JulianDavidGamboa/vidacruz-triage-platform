@@ -9,7 +9,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-/** Vista en un hash de Redis: paciente activo → código de nivel. Dar de alta quita la entrada. */
 @Component
 public class RedisVistaUrgenciasAdapter implements VistaUrgenciasPort {
 

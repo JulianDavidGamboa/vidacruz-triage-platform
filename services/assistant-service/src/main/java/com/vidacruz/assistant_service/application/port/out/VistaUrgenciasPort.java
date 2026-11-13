@@ -6,10 +6,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-/**
- * Vista de pacientes activos. {@code activar} y {@code desactivar} son idempotentes: repetir un evento no cambia el
- * resultado, así que no hace falta una tabla de eventos procesados.
- */
 public interface VistaUrgenciasPort {
     Mono<Void> activar(UUID pacienteId, NivelTriaje nivel);
 
