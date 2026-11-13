@@ -1,0 +1,61 @@
+name: Deploy to AKS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-aks
+  cancel-in-progress: false
+
+env:
+  ACR_NAME: ${{ vars.ACR_NAME }}
+  RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+  AKS_NAME: ${{ vars.AKS_NAME }}
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to ACR
+        run: az acr login --name "$ACR_NAME"
+
+      - name: Build and push images
+        run: |
+          for service in triage-service assistant-service alert-service; do
+            image="$ACR_NAME.azurecr.io/$service"
+            docker build -f deploy/docker/Dockerfile --build-arg SERVICE="$service" \
+              -t "$image:${{ github.sha }}" .
+            docker push "$image:${{ github.sha }}"
+          done
+
+      - name: Connect to the cluster
+        run: az aks get-credentials --resource-group "$RESOURCE_GROUP" --name "$AKS_NAME"
+
+      - name: Apply manifests
+        run: kubectl apply -k deploy/k8s/overlays/azure
+
+      - name: Roll out the new images
+        run: |
+          for service in triage-service assistant-service alert-service; do
+            kubectl -n vidacruz set image "deployment/$service" \
+              "$service=$ACR_NAME.azurecr.io/$service:${{ github.sha }}"
+          done
+          for service in triage-service assistant-service alert-service; do
+            kubectl -n vidacruz rollout status "deployment/$service" --timeout=300s
+          done
