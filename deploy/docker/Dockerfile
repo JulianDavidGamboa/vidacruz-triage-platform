@@ -1,15 +1,14 @@
 #   docker build -f deploy/docker/Dockerfile --build-arg SERVICE=triage-service .
-FROM eclipse-temurin:21-jdk AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 ARG SERVICE
 WORKDIR /workspace
 
-COPY .mvn .mvn
-COPY mvnw pom.xml ./
+COPY pom.xml ./
 COPY contracts contracts
 COPY services services
 
 RUN --mount=type=cache,target=/root/.m2 \
-    ./mvnw -q -B -pl services/${SERVICE} -am -DskipTests package
+    mvn -q -B -pl services/${SERVICE} -am -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine
 ARG SERVICE
