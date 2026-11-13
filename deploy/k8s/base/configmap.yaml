@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vidacruz-config
+data:
+  DB_HOST: postgres
+  DB_NAME: triage
+  DB_USER: triage
+  REDIS_HOST: redis
+  KAFKA_BOOTSTRAP: kafka:9092
+  TRIAGE_SLA_EVALUATION_INTERVAL: 30s

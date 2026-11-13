@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: vidacruz
+
+resources:
+  - ../../base
+  - ../../data
+
+images:
+  - name: vidacruz/triage-service
+    newName: vidacruzjdg2026.azurecr.io/triage-service
+    newTag: latest
+  - name: vidacruz/assistant-service
+    newName: vidacruzjdg2026.azurecr.io/assistant-service
+    newTag: latest
+  - name: vidacruz/alert-service
+    newName: vidacruzjdg2026.azurecr.io/alert-service
+    newTag: latest
+
+patches:
+  - target:
+      kind: Ingress
+      name: vidacruz
+    patch: |-
+      - op: add
+        path: /spec/ingressClassName
+        value: webapprouting.kubernetes.azure.com

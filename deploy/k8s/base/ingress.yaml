@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vidacruz
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /triage
+            pathType: Prefix
+            backend:
+              service:
+                name: triage-service
+                port:
+                  name: http
+          - path: /asistente
+            pathType: Prefix
+            backend:
+              service:
+                name: assistant-service
+                port:
+                  name: http
