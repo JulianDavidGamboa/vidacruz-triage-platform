@@ -19,7 +19,7 @@ class ConfiguredSlaPolicyTest {
         return new TriageProperties("clave",
                 new TriageProperties.Sla(minutos, Duration.ofSeconds(30), true),
                 new TriageProperties.Kafka("localhost:9092", "triaje.eventos"),
-                new TriageProperties.Outbox(Duration.ofMillis(500), 100));
+                new TriageProperties.Outbox(Duration.ofMillis(500), 100, Duration.ofDays(7), Duration.ofHours(1), true));
     }
 
     private static Map<NivelTriaje, Integer> completo() {
@@ -75,7 +75,7 @@ class ConfiguredSlaPolicyTest {
     void fallaAlArrancarSiNoHayConfiguracionDeSla() {
         TriageProperties sinSla = new TriageProperties("clave", null,
                 new TriageProperties.Kafka("localhost:9092", "triaje.eventos"),
-                new TriageProperties.Outbox(Duration.ofMillis(500), 100));
+                new TriageProperties.Outbox(Duration.ofMillis(500), 100, Duration.ofDays(7), Duration.ofHours(1), true));
 
         assertThatThrownBy(() -> new ConfiguredSlaPolicy(sinSla)).isInstanceOf(IllegalStateException.class);
     }

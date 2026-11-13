@@ -35,7 +35,7 @@ class SlaMonitorSchedulerTest {
         TriageProperties props = new TriageProperties("clave",
                 new TriageProperties.Sla(Map.of(NivelTriaje.CRITICO, 5), Duration.ofSeconds(30), true),
                 new TriageProperties.Kafka("localhost:9092", "triaje.eventos"),
-                new TriageProperties.Outbox(Duration.ofMillis(500), 100));
+                new TriageProperties.Outbox(Duration.ofMillis(500), 100, Duration.ofDays(7), Duration.ofHours(1), true));
         scheduler = new SlaMonitorScheduler(escalar, props);
     }
 

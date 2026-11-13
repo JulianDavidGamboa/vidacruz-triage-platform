@@ -27,7 +27,12 @@ public record TriageProperties(
     public record Kafka(String bootstrapServers, @DefaultValue("triaje.eventos") String topic) {
     }
 
-    public record Outbox(@DefaultValue("500ms") Duration pollInterval, @DefaultValue("100") int batchSize) {
+    public record Outbox(
+            @DefaultValue("500ms") Duration pollInterval,
+            @DefaultValue("100") int batchSize,
+            @DefaultValue("7d") Duration retention,
+            @DefaultValue("1h") Duration purgeInterval,
+            @DefaultValue("true") boolean purgeEnabled) {
     }
 }
 

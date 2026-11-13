@@ -1,6 +1,8 @@
 spring:
   application:
     name: triage-service
+  reactor:
+    context-propagation: auto
   r2dbc:
     url: r2dbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:triage}
     username: ${DB_USER}
@@ -36,6 +38,8 @@ triage:
   outbox:
     poll-interval: 500ms
     batch-size: 100
+    retention: 7d
+    purge-interval: 1h
   sla:
     minutos:                      # la clave es el nombre exacto del enum
       CRITICO: 5
