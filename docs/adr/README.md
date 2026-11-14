@@ -13,11 +13,11 @@ Formato: contexto → decisión → alternativas → consecuencias. Cada ADR ind
 | [0006](0006-modo-degradado-del-llm.md) | Modo degradado del LLM con circuit breaker | Aceptada | Implementado (RF-04); 503 verificado en IT |
 | [0007](0007-canal-de-alertas-rf06.md) | Canal de alertas al equipo médico (RF-06) | Aceptada | Implementado (RF-06); contrato version 2 con SLA y fecha de registro |
 | [0008](0008-autenticacion-api-key.md) | Autenticación por API key | Aceptada | Implementada en triage |
-| [0009](0009-despliegue-aks-y-event-hubs.md) | Despliegue en AKS con servicios gestionados de Azure | Reemplazada parcialmente por ADR-0012 | Pendiente |
+| [0009](0009-despliegue-aks-y-event-hubs.md) | Despliegue en AKS con servicios gestionados de Azure | Reemplazada parcialmente por ADR-0012 | Parcial: AKS, ACR, Bicep y CI/CD desplegados; Key Vault pendiente |
 | [0010](0010-version-spring-boot-3-5.md) | Spring Boot 3.5 y Spring AI 1.1.x | Aceptada | Aplicada en el pom padre |
 | [0011](0011-reporte-operacion-rf05.md) | Reporte de operación por hora con SQL agregado | Aceptada | Implementada (RF-05); `ReporteOperacionIT` verificado con PostgreSQL 16 |
 | [0012](0012-servicios-de-datos-en-el-cluster.md) | Servicios de datos dentro del clúster AKS | Aceptada | Desplegada y verificada en AKS; manifests en `deploy/k8s/data/` |
-| [0013](0013-canal-de-alertas-discord.md) | Canal de alertas adicional: Discord (complementa el ADR-0007) | Aceptada | Implementada; envío real a Discord sin verificar |
+| [0013](0013-canal-de-alertas-discord.md) | Canal de alertas adicional: Discord (complementa el ADR-0007) | Aceptada | Implementada; envío real a Discord verificado en AKS |
 
 ## Plantilla
 

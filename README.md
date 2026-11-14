@@ -13,7 +13,7 @@ Backend reactivo (Java 21, Spring Boot 3.5, WebFlux, R2DBC, Kafka) para el triaj
 | RF-03 | Monitoreo de SLA y escalamiento automático | Implementado |
 | RF-05 | Reporte de operación por hora (SQL avanzado, [ADR-0011](docs/adr/0011-reporte-operacion-rf05.md)) | Implementado; `ReporteOperacionIT` verificado contra PostgreSQL 16 |
 | RF-04 | Asistente clínico con RAG y estado de urgencias en tiempo real | Implementado (`assistant-service`). ITs con Redis, HTTP y consumidor de Kafka verificados con Podman. En AKS, la vista de urgencias se alimenta de Kafka (verificado). Las respuestas con LLM real dependen de OpenRouter (ver Limitaciones) |
-| RF-06 | Alertas de escalamiento al equipo médico | Implementado (`alert-service`): webhook de Teams con respaldo en log y DLT (ADR-0007). Consumidor de Kafka verificado en AKS con alerta en el log de respaldo; webhook de Teams real sin verificar. El evento `paciente_escalado` lleva SLA y fecha de registro (contrato version 2) |
+| RF-06 | Alertas de escalamiento al equipo médico | Implementado (`alert-service`): webhooks de Teams y Discord ([ADR-0007](docs/adr/0007-canal-de-alertas-rf06.md), [ADR-0013](docs/adr/0013-canal-de-alertas-discord.md)) con respaldo en log y DLT. Consumidor de Kafka y envío real a Discord verificados en AKS; el webhook de Teams real sin verificar. El evento `paciente_escalado` lleva SLA y fecha de registro (contrato version 2) |
 | — | Manifests de Kubernetes y despliegue en Azure | Implementado y desplegado en AKS ([ADR-0012](docs/adr/0012-servicios-de-datos-en-el-cluster.md)); ver [Despliegue en Azure](#despliegue-en-azure) |
 
 Los tres servicios y el módulo `events-contract` están en el repositorio. El `docker-compose.yml` levanta toda la plataforma en local.
@@ -136,7 +136,7 @@ flowchart LR
     KF -.-> ALR
     AST -.-> RD[("Redis")]
     AST -.->|"circuit breaker"| LLM[["LLM"]]
-    ALR -.-> CH[["Teams"]]
+    ALR -.-> CH[["Teams / Discord"]]
 ```
 
 Cada servicio sigue arquitectura hexagonal (`domain` ← `application` ← `infrastructure`), con las reglas verificadas por ArchUnit. El triaje no depende del asistente ni de las alertas: solo publica eventos.

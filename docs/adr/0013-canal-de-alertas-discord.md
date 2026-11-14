@@ -2,7 +2,7 @@
 
 - **Estado:** Aceptada
 - **Fecha:** 2026-11-13
-- **Implementación:** Implementada en `alert-service` (`CanalDiscord`, `CanalTeams`, `CanalAlertasCompuesto`). Pruebas unitarias y ArchUnit en verde; el envío real a Discord y el despliegue en AKS no están verificados. Complementa el ADR-0007 (no lo reemplaza).
+- **Implementación:** Implementada en `alert-service` (`CanalDiscord`, `CanalTeams`, `CanalAlertasCompuesto`). Pruebas unitarias y ArchUnit en verde, y envío real a un canal de Discord verificado en AKS el 2026-11-13. Complementa el ADR-0007 (no lo reemplaza).
 
 ## Contexto
 

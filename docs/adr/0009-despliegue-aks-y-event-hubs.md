@@ -2,7 +2,7 @@
 
 - **Estado:** Reemplazada parcialmente por ADR-0012 (servicios de datos)
 - **Fecha:** 2026-11-10
-- **Implementación:** Pendiente. Docker Compose local ya definido; manifests e IaC por crear.
+- **Implementación:** Parcial. AKS, ACR, Kustomize, Bicep y CI/CD están implementados y desplegados; los servicios de datos gestionados los reemplazó el ADR-0012. Key Vault sigue pendiente.
 
 ## Contexto
 
