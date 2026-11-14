@@ -2,7 +2,7 @@
 
 - **Estado:** Aceptada
 - **Fecha:** 2026-11-10
-- **Implementación:** Implementada en `triage-service` (`ApiKeyAuthFilter`, `SecurityConfig`); replicable en el asistente
+- **Implementación:** Implementada en `triage-service` (`ApiKeyAuthFilter`, `SecurityConfig`) y en `assistant-service`; el 401 sin clave está verificado en AKS
 
 ## Contexto
 

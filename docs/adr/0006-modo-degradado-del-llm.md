@@ -2,7 +2,7 @@
 
 - **Estado:** Aceptada
 - **Fecha:** 2026-11-10
-- **Implementación:** Pendiente (RF-04, `assistant-service`)
+- **Implementación:** Implementada (RF-04, `assistant-service`): circuit breaker y 503 en modo degradado, verificados en IT y en AKS. El tope de tiempo usa `.timeout` de Reactor y no un `TimeLimiter`.
 
 ## Contexto
 

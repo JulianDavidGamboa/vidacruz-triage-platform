@@ -32,9 +32,9 @@ Maven multi-module build (Java 21, Spring Boot 3.5.16). Run everything from the 
 
 ## Architecture
 
-**Modules.** The root `pom.xml` aggregates `contracts/events-contract` and the three services (`triage-service`, `assistant-service`, `alert-service`). `triage-service` depends on the contract module for event types (other services: not verified yet). Its version is pinned in the root `dependencyManagement`, so keep the version in sync when changing it.
+**Modules.** The root `pom.xml` aggregates `contracts/events-contract` and the three services (`triage-service`, `assistant-service`, `alert-service`). The three services depend on the contract module for event types. Its version is pinned in the root `dependencyManagement`, so keep the version in sync when changing it.
 
-**Maturity is uneven.** Only `triage-service` has real logic. `assistant-service` and `alert-service` currently contain only the Spring Boot entry point and a minimal `application.yaml`. Do not assume behavior for them from the compose file or the naming.
+**All three services are implemented.** `assistant-service` serves the RAG consultation and the urgency view (Redis, fed only from Kafka). `alert-service` consumes `paciente_escalado` and sends alerts to Teams and Discord through a composite channel, falling back to the log. Both follow the same hexagonal layout as triage and have their own `HexagonalArchitectureTest`. See `docs/especificacion.md` for behavior and verification status.
 
 **Triage service is hexagonal, and the rule is enforced.** `HexagonalArchitectureTest` (ArchUnit) runs as a normal unit test and fails the build on violations. Layers:
 - `domain` — pure model (`Paciente`, `EventoClinico`, `NivelTriaje`, `EstadoPaciente`, `TriageClassifier`). No Spring, R2DBC, Kafka, or Jackson.
@@ -44,7 +44,7 @@ Maven multi-module build (Java 21, Spring Boot 3.5.16). Run everything from the 
 
 **Write path and the outbox.** `RegistrarPacienteService`, `CambiarEstadoService`, and `EscalarPacientesVencidosService` are `@Transactional` (reactive). Each state change writes the aggregate, an audit row (immutable, see `V2__auditoria_inmutable.sql`), and an outbox row (`V3__outbox.sql`) in the same transaction. The outbox row is the only thing that is supposed to reach Kafka. Events go out through the outbox, not directly from the service.
 
-**The outbox relay is NOT implemented yet.** `application.yml` defines `triage.outbox.poll-interval` and `batch-size`, and `KafkaConfig` declares a `KafkaSender` bean. Nothing reads the outbox table or uses that sender. Keep this in mind before assuming events reach `triaje.eventos`. Building the relay is the missing piece of the event flow.
+**The outbox relay.** `OutboxRelay` polls unpublished rows (`triage.outbox.poll-interval`, `batch-size`), publishes them with the `KafkaSender` from `KafkaConfig`, and sets `published_at` after the broker ack. `DepuracionOutboxScheduler` deletes published rows older than `triage.outbox.retention` (7 days by default).
 
 **SLA escalation.** `SlaMonitorScheduler` (inbound adapter) periodically calls `EscalarPacientesVencidosUseCase`. The interval comes from `TRIAGE_SLA_EVALUATION_INTERVAL` (compose default `30s`). SLA minutes per `NivelTriaje` live in `triage.sla.minutos` and are read by `ConfiguredSlaPolicy`. Keys must match enum names exactly (RN-02 in the config comment).
 

@@ -2,7 +2,7 @@
 
 - **Estado:** Aceptada
 - **Fecha:** 2026-11-10
-- **Implementación:** `triage-service` implementado (RF-01); `assistant-service` y `alert-service` pendientes
+- **Implementación:** Implementada: `triage-service`, `assistant-service` y `alert-service` desplegados en AKS
 
 ## Contexto
 

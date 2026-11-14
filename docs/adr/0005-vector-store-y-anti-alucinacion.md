@@ -2,7 +2,7 @@
 
 - **Estado:** Aceptada
 - **Fecha:** 2026-11-10
-- **Implementación:** Pendiente (RF-04, `assistant-service`)
+- **Implementación:** Implementada (RF-04, `assistant-service`): compuerta por similitud y validación de citas con pruebas unitarias. El umbral final en AKS es 0,40 con otro modelo de embeddings (ver `docs/especificacion.md`, §14); el indicador de salud descrito aquí no existe y el servicio responde 503 si el corpus no cargó.
 
 ## Contexto
 

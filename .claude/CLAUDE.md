@@ -12,11 +12,13 @@ Java 21, Spring Boot **3.5.x** (el enunciado exige Boot 3; no migrar a Boot 4), 
 
 ```text
 contracts/events-contract/     # Contrato de eventos: jar plano, solo records y constantes
-services/triage-service/       # RF-01, RF-02, RF-03 implementados; RF-05 pendiente
-services/assistant-service/    # RF-04 — pendiente
-services/alert-service/        # RF-06 — pendiente
+services/triage-service/       # RF-01, RF-02, RF-03 y RF-05
+services/assistant-service/    # RF-04
+services/alert-service/        # RF-06 (Teams y Discord)
 deploy/docker/                 # docker-compose.yml y Dockerfile genérico (ARG SERVICE)
-docs/                          # especificación, enunciado y ADR
+deploy/k8s/                    # Kustomize: base, data y overlays/azure
+deploy/azure/                  # Bicep (ACR y AKS) y guía de despliegue
+docs/                          # especificación y ADR
 ```
 
 Cada servicio: `domain` ← `application` ← `infrastructure` (hexagonal).
@@ -77,13 +79,12 @@ docker compose -f deploy/docker/docker-compose.yml --env-file .env up --build \
 
 ## Estado y siguiente trabajo
 
-Implementado: RF-01, RF-02, RF-03 en `triage-service`. Pendiente, en el orden sugerido:
+Implementado: RF-01 a RF-06, el relay del outbox, la retención del outbox, el `correlationId` en el MDC y el despliegue en AKS con CI/CD. El detalle y su estado de verificación están en `docs/especificacion.md` (§3 y §14). Pendiente:
 
-1. **RF-05** — reporte por hora en SQL avanzado (CTE, `ROW_NUMBER`, `FILTER`, `percentile_cont`); usa `fecha_primera_consulta`.
-2. **`assistant-service`** — RF-04: RAG con Spring AI, `SimpleVectorStore`, compuerta de similitud antes del LLM, validación de citas después, circuit breaker con 503 (ADR-0005, ADR-0006); vista de urgencias en Redis alimentada solo desde Kafka.
-3. **`alert-service`** — RF-06: consumidor de `paciente_escalado`, webhook de Teams con respaldo por log (ADR-0007).
-4. Despliegue: manifests de Kubernetes con Kustomize, Bicep, CI/CD (ADR-0009).
-5. Limpieza: política de retención del outbox, propagar `correlationId` al MDC de los logs.
+1. Key Vault para los secretos (ADR-0009); hoy viven en un `Secret` de Kubernetes.
+2. Persistir los vectores del asistente: un arranque con el proveedor de embeddings caído deja el asistente en 503.
+3. Verificar el webhook real de Teams (Discord ya está verificado).
+4. Test unitario del mapper de pacientes (`PacienteEntityMapper`).
 
 Al terminar un requisito, actualiza el estado en `README.md`, la tabla de `docs/especificacion.md` y el ADR correspondiente.
 
