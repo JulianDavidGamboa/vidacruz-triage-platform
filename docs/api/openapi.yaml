@@ -1,0 +1,607 @@
+openapi: 3.0.3
+info:
+  title: VidaCruz — API de triaje y asistente
+  version: 1.0.0
+  description: |
+    Contrato HTTP de `triage-service` (RF-01, RF-02, RF-03, RF-05) y `assistant-service` (RF-04).
+
+    Todos los endpoints de negocio exigen el header `X-API-Key`. Los probes `/actuator/health/**` son públicos.
+
+    Los errores siguen RFC 7807 (`application/problem+json`). Los cuatro niveles de triaje
+    (`CRITICO`, `URGENTE`, `URGENTE_2`, `NO_URGENTE`, `NO_URGENTE_2`) son el mismo vocabulario en ambos servicios.
+
+    Dos formas de llegar a la API:
+    - **Local:** triage en `http://localhost:8081`, assistant en `http://localhost:8082` (puertos del `docker-compose`).
+    - **AKS:** ambos servicios detrás del Ingress, con prefijos `/triage` y `/asistente`. Reemplazá `{ingressHost}` por la IP o host del Ingress (`kubectl -n vidacruz get ingress vidacruz`).
+
+servers:
+  - url: http://localhost:8081
+    description: triage-service local
+  - url: http://{ingressHost}
+    description: AKS vía Ingress
+    variables:
+      ingressHost:
+        default: "<ip-del-ingress>"
+        description: IP o host del Ingress en el clúster.
+
+tags:
+  - name: Triage
+    description: Registro, clasificación, seguimiento de estado y reportes de pacientes.
+  - name: Asistente
+    description: Consultas RAG sobre protocolos clínicos y estado de urgencias.
+  - name: Salud
+    description: Probes públicos para Kubernetes y Docker.
+
+security:
+  - apiKey: []
+
+paths:
+  /triage/pacientes:
+    post:
+      tags: [Triage]
+      operationId: registrarPaciente
+      summary: Registrar y clasificar un paciente (RF-01)
+      description: |
+        Valida los signos vitales, calcula el nivel de triaje y el SLA, y persiste el paciente junto con
+        su auditoría y su evento en el outbox, todo en una sola transacción.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistrarPacienteRequest"
+            example:
+              nombreCompleto: Ana Pérez
+              edad: 58
+              frecuenciaCardiaca: 128
+              presionSistolica: 90
+              presionDiastolica: 60
+              spo2: 88
+              temperatura: 38.9
+              dolor: 8
+              gcs: 14
+              quejaPrincipal: Dolor torácico opresivo irradiado al brazo izquierdo
+      responses:
+        "201":
+          description: Paciente registrado y clasificado. El header `Location` apunta al recurso creado.
+          headers:
+            Location:
+              description: URL del paciente creado.
+              schema:
+                type: string
+                example: /triage/pacientes/5f0c2a8e-3b1d-4c7a-9e2f-1a2b3c4d5e6f
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PacienteResponse"
+        "400":
+          $ref: "#/components/responses/ProblemValidacion"
+        "401":
+          $ref: "#/components/responses/NoAutorizado"
+
+  /triage/pacientes/{id}:
+    parameters:
+      - $ref: "#/components/parameters/PacienteId"
+    get:
+      tags: [Triage]
+      operationId: consultarPaciente
+      summary: Consultar un paciente (RF-02)
+      description: Devuelve los datos completos, el estado actual, el flag de escalamiento y el tiempo en el estado actual.
+      responses:
+        "200":
+          description: Paciente encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PacienteDetalleResponse"
+        "401":
+          $ref: "#/components/responses/NoAutorizado"
+        "404":
+          $ref: "#/components/responses/ProblemNoEncontrado"
+
+  /triage/pacientes/{id}/estado:
+    parameters:
+      - $ref: "#/components/parameters/PacienteId"
+    patch:
+      tags: [Triage]
+      operationId: cambiarEstado
+      summary: Cambiar el estado clínico de un paciente (RF-02)
+      description: |
+        Aplica una transición de estado con control optimista. Si el estado cambió entre la lectura y la
+        escritura, responde 409 sin auditar ni publicar. Las transiciones inválidas también devuelven 409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CambiarEstadoRequest"
+            example:
+              estado: EN_CONSULTA
+      responses:
+        "200":
+          description: Transición aplicada. Devuelve el paciente con su estado actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PacienteDetalleResponse"
+        "400":
+          $ref: "#/components/responses/ProblemValidacion"
+        "401":
+          $ref: "#/components/responses/NoAutorizado"
+        "404":
+          $ref: "#/components/responses/ProblemNoEncontrado"
+        "409":
+          $ref: "#/components/responses/ProblemConflicto"
+
+  /triage/reportes/operacion:
+    get:
+      tags: [Triage]
+      operationId: reporteOperacion
+      summary: Reporte de operación por hora (RF-05)
+      description: |
+        Agrupa los pacientes registrados en el intervalo por hora de registro. Los tiempos de espera
+        son en minutos y valen `null` cuando ningún paciente de esa hora llegó a consulta.
+      parameters:
+        - name: desde
+          in: query
+          required: true
+          description: Inicio del intervalo (inclusive), ISO 8601 UTC.
+          schema:
+            type: string
+            format: date-time
+          example: "2026-11-13T08:00:00Z"
+        - name: hasta
+          in: query
+          required: true
+          description: Fin del intervalo, ISO 8601 UTC. Debe ser posterior a `desde`.
+          schema:
+            type: string
+            format: date-time
+          example: "2026-11-13T12:00:00Z"
+      responses:
+        "200":
+          description: Reporte por franjas horarias.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteOperacionVista"
+        "400":
+          description: Rango inválido (`desde` no anterior a `hasta`) o parámetros mal formados.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "401":
+          $ref: "#/components/responses/NoAutorizado"
+
+  /asistente/consulta:
+    post:
+      tags: [Asistente]
+      operationId: consultarAsistente
+      summary: Consultar protocolos clínicos (RF-04)
+      description: |
+        Recupera los fragmentos de protocolo más similares a la pregunta y pide al LLM una respuesta
+        basada solo en ellos, citando el identificador del protocolo. Si los protocolos no responden,
+        el asistente lo dice explícitamente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsultaRequest"
+            example:
+              pregunta: ¿Qué medidas iniciales corresponden a un dolor torácico?
+      responses:
+        "200":
+          description: Respuesta del asistente con sus fuentes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsultaResponse"
+        "400":
+          $ref: "#/components/responses/ProblemValidacion"
+        "401":
+          $ref: "#/components/responses/NoAutorizado"
+        "503":
+          $ref: "#/components/responses/AsistenteNoDisponible"
+
+  /asistente/estado-urgencias:
+    get:
+      tags: [Asistente]
+      operationId: estadoUrgencias
+      summary: Conteo de pacientes activos por nivel
+      description: |
+        Vista de urgencias alimentada solo desde Kafka (Redis). Devuelve el total y el conteo de los
+        cinco niveles, incluidos los que tienen cero.
+      responses:
+        "200":
+          description: Estado actual de urgencias.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstadoUrgenciasResponse"
+        "401":
+          $ref: "#/components/responses/NoAutorizado"
+
+  /actuator/health/liveness:
+    get:
+      tags: [Salud]
+      operationId: liveness
+      summary: Probe de vida (público)
+      security: []
+      servers:
+        - url: http://localhost:8081
+      responses:
+        "200":
+          description: El proceso está vivo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+
+  /actuator/health/readiness:
+    get:
+      tags: [Salud]
+      operationId: readiness
+      summary: Probe de disponibilidad (público)
+      security: []
+      servers:
+        - url: http://localhost:8081
+      responses:
+        "200":
+          description: El servicio puede recibir tráfico.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+        "503":
+          description: El servicio no está listo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Clave compartida. Se configura con la variable de entorno `API_KEY`.
+
+  parameters:
+    PacienteId:
+      name: id
+      in: path
+      required: true
+      description: Identificador del paciente (UUID).
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    ProblemValidacion:
+      description: Datos de entrada inválidos. El campo `errores` lista cada campo con su mensaje.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+    ProblemNoEncontrado:
+      description: El paciente no existe.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+    ProblemConflicto:
+      description: Transición de estado inválida o estado modificado concurrentemente.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+    AsistenteNoDisponible:
+      description: El proveedor de IA no responde o el circuit breaker está abierto (ADR-0006).
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+    NoAutorizado:
+      description: Falta la API key o no es válida.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+  schemas:
+    ProblemDetail:
+      type: object
+      description: Error RFC 7807.
+      properties:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+          example: Datos de entrada inválidos
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+        instance:
+          type: string
+        errores:
+          type: array
+          description: Presente en errores de validación.
+          items:
+            type: object
+            properties:
+              campo:
+                type: string
+              mensaje:
+                type: string
+
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN]
+
+    NivelTriaje:
+      type: string
+      enum: [CRITICO, URGENTE, URGENTE_2, NO_URGENTE, NO_URGENTE_2]
+
+    RegistrarPacienteRequest:
+      type: object
+      required:
+        - nombreCompleto
+        - edad
+        - frecuenciaCardiaca
+        - presionSistolica
+        - presionDiastolica
+        - spo2
+        - temperatura
+        - dolor
+        - gcs
+        - quejaPrincipal
+      properties:
+        nombreCompleto:
+          type: string
+          minLength: 3
+          maxLength: 100
+        edad:
+          type: integer
+          minimum: 0
+          maximum: 120
+        frecuenciaCardiaca:
+          type: integer
+          description: Latidos por minuto.
+          minimum: 20
+          maximum: 250
+        presionSistolica:
+          type: integer
+          description: mmHg.
+          minimum: 60
+          maximum: 260
+        presionDiastolica:
+          type: integer
+          description: mmHg. Debe ser menor que `presionSistolica`.
+          minimum: 30
+          maximum: 160
+        spo2:
+          type: integer
+          description: Porcentaje de saturación de oxígeno.
+          minimum: 70
+          maximum: 100
+        temperatura:
+          type: number
+          format: double
+          description: Grados Celsius.
+          minimum: 34.0
+          maximum: 42.0
+        dolor:
+          type: integer
+          description: Escala 0 a 10.
+          minimum: 0
+          maximum: 10
+        gcs:
+          type: integer
+          description: Glasgow Coma Scale.
+          minimum: 3
+          maximum: 15
+        quejaPrincipal:
+          type: string
+          maxLength: 300
+
+    PacienteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nivel:
+          $ref: "#/components/schemas/NivelTriaje"
+        nivelCodigo:
+          type: integer
+          minimum: 1
+          maximum: 5
+        slaMinutos:
+          type: integer
+        estado:
+          type: string
+          example: REGISTRADO
+        fechaRegistro:
+          type: string
+          format: date-time
+
+    PacienteDetalleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombreCompleto:
+          type: string
+        edad:
+          type: integer
+        nivel:
+          $ref: "#/components/schemas/NivelTriaje"
+        nivelCodigo:
+          type: integer
+        slaMinutos:
+          type: integer
+        estado:
+          type: string
+          enum: [REGISTRADO, EN_CONSULTA, ALTA]
+        minutosEnEstadoActual:
+          type: integer
+          format: int64
+        flags:
+          type: object
+          properties:
+            escalado:
+              type: boolean
+        signosVitales:
+          $ref: "#/components/schemas/SignosVitales"
+        quejaPrincipal:
+          type: string
+        fechaRegistro:
+          type: string
+          format: date-time
+        fechaEstado:
+          type: string
+          format: date-time
+        fechaEscalado:
+          type: string
+          format: date-time
+          nullable: true
+        fechaPrimeraConsulta:
+          type: string
+          format: date-time
+          nullable: true
+
+    SignosVitales:
+      type: object
+      properties:
+        frecuenciaCardiaca:
+          type: integer
+        presionSistolica:
+          type: integer
+        presionDiastolica:
+          type: integer
+        spo2:
+          type: integer
+        temperatura:
+          type: number
+          format: double
+        dolor:
+          type: integer
+        gcs:
+          type: integer
+
+    CambiarEstadoRequest:
+      type: object
+      required: [estado]
+      properties:
+        estado:
+          type: string
+          enum: [REGISTRADO, EN_CONSULTA, ALTA]
+
+    ReporteOperacionVista:
+      type: object
+      properties:
+        desde:
+          type: string
+          format: date-time
+        hasta:
+          type: string
+          format: date-time
+        franjas:
+          type: array
+          items:
+            $ref: "#/components/schemas/FranjaHoraria"
+
+    FranjaHoraria:
+      type: object
+      properties:
+        hora:
+          type: string
+          format: date-time
+          description: Inicio de la hora de registro.
+        totalRegistrados:
+          type: integer
+          format: int64
+        porNivel:
+          type: object
+          description: Conteo por nivel de triaje.
+          additionalProperties:
+            type: integer
+            format: int64
+        tiempoPromedioEsperaMin:
+          type: number
+          format: double
+          nullable: true
+          description: Minutos entre registro y primera consulta. `null` si nadie llegó a consulta.
+        p95EsperaMin:
+          type: number
+          format: double
+          nullable: true
+          description: Percentil 95 de la espera en minutos. `null` si nadie llegó a consulta.
+        rankingVolumen:
+          type: integer
+          format: int64
+
+    ConsultaRequest:
+      type: object
+      required: [pregunta]
+      properties:
+        pregunta:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    ConsultaResponse:
+      type: object
+      properties:
+        respuesta:
+          type: string
+        fuentes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Fuente"
+
+    Fuente:
+      type: object
+      properties:
+        protocolo:
+          type: string
+          example: PROTO-001
+        seccion:
+          type: string
+          example: Medidas iniciales
+
+    EstadoUrgenciasResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+        porNivel:
+          type: object
+          description: Siempre incluye los cinco niveles, aunque su conteo sea cero.
+          properties:
+            CRITICO:
+              type: integer
+              format: int64
+            URGENTE:
+              type: integer
+              format: int64
+            URGENTE_2:
+              type: integer
+              format: int64
+            NO_URGENTE:
+              type: integer
+              format: int64
+            NO_URGENTE_2:
+              type: integer
+              format: int64

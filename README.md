@@ -52,6 +52,8 @@ Los SLA por nivel están en `services/triage-service/src/main/resources/applicat
 
 Todos los endpoints exigen `X-API-Key`, salvo los probes `/actuator/health/**`.
 
+La especificación OpenAPI de todos los endpoints está en [`docs/api/openapi.yaml`](docs/api/openapi.yaml). Se puede abrir en [Swagger Editor](https://editor.swagger.io) o importar en Postman, Insomnia o Bruno.
+
 ```bash
 export API_KEY=la-clave-de-tu-.env
 
