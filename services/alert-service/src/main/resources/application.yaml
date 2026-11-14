@@ -5,6 +5,7 @@ spring:
 alert:
   # Secreto: solo por variable de entorno. Vacío = canal de log únicamente
   teams-webhook-url: ${TEAMS_WEBHOOK_URL:}
+  discord-webhook-url: ${DISCORD_WEBHOOK_URL:}
   dedupe-capacity: 10000
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:29092}

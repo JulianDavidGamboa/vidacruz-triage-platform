@@ -44,7 +44,8 @@ kubectl -n vidacruz create secret generic vidacruz-secrets \
   --from-literal=API_KEY="$API_KEY" \
   --from-literal=DB_PASSWORD="$DB_PASSWORD" \
   --from-literal=LLM_API_KEY="$LLM_API_KEY" \
-  --from-literal=TEAMS_WEBHOOK_URL="$TEAMS_WEBHOOK_URL"
+  --from-literal=TEAMS_WEBHOOK_URL="$TEAMS_WEBHOOK_URL" \
+  --from-literal=DISCORD_WEBHOOK_URL="$DISCORD_WEBHOOK_URL"
 ```
 
 ## Manifests

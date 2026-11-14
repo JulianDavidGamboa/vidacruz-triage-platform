@@ -37,6 +37,12 @@ spec:
                   name: vidacruz-secrets
                   key: TEAMS_WEBHOOK_URL
                   optional: true
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: vidacruz-secrets
+                  key: DISCORD_WEBHOOK_URL
+                  optional: true
           resources:
             requests:
               cpu: 100m

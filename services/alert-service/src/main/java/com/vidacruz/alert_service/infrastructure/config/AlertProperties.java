@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 @ConfigurationProperties(prefix = "alert")
 public record AlertProperties(
         @DefaultValue("") String teamsWebhookUrl,
+        @DefaultValue("") String discordWebhookUrl,
         @DefaultValue("10000") int dedupeCapacity,
         Kafka kafka) {
 

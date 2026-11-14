@@ -27,11 +27,13 @@ class EscalamientoKafkaIT {
 
     static final FixedHostPortGenericContainer<?> KAFKA = KafkaKraftContainer.crear();
     static final MockWebServer TEAMS = new MockWebServer();
+    static final MockWebServer DISCORD = new MockWebServer();
 
     static {
         KAFKA.start();
         try {
             TEAMS.start();
+            DISCORD.start();
         } catch (Exception e) {
             throw new IllegalStateException("No se pudo arrancar el webhook falso", e);
         }
@@ -41,11 +43,13 @@ class EscalamientoKafkaIT {
     static void propiedades(DynamicPropertyRegistry registry) {
         registry.add("alert.kafka.bootstrap-servers", KafkaKraftContainer::bootstrapServers);
         registry.add("alert.teams-webhook-url", () -> TEAMS.url("/hook").toString());
+        registry.add("alert.discord-webhook-url", () -> DISCORD.url("/hook").toString());
     }
 
     @Test
-    void soloLosEscalamientosLlegANTeamsConLosMinutosExcedidos() throws Exception {
+    void soloLosEscalamientosLlegANTeamsYDiscordConLosMinutosExcedidos() throws Exception {
         TEAMS.enqueue(new MockResponse().setResponseCode(200));
+        DISCORD.enqueue(new MockResponse().setResponseCode(204));
         UUID escalado = UUID.randomUUID();
 
         publicar(evento("paciente_registrado", UUID.randomUUID(), 2, Instant.now().minus(Duration.ofMinutes(5))));
@@ -53,9 +57,15 @@ class EscalamientoKafkaIT {
         publicar(evento("paciente_escalado", escalado, 2, ahora.minus(Duration.ofMinutes(72)), ahora));
 
         RecordedRequest peticion = TEAMS.takeRequest(30, TimeUnit.SECONDS);
+        RecordedRequest peticionDiscord = DISCORD.takeRequest(30, TimeUnit.SECONDS);
 
         assertThat(peticion).as("alerta recibida por el webhook").isNotNull();
         assertThat(peticion.getBody().readUtf8())
+                .contains(escalado.toString())
+                .contains("SLA 30 min, excedido 42 min");
+        assertThat(peticionDiscord).as("alerta recibida por Discord").isNotNull();
+        assertThat(peticionDiscord.getBody().readUtf8())
+                .contains("\"content\"")
                 .contains(escalado.toString())
                 .contains("SLA 30 min, excedido 42 min");
     }

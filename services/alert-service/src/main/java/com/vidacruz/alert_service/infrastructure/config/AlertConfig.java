@@ -35,7 +35,16 @@ public class AlertConfig {
 
     @Bean
     CircuitBreaker teamsCircuitBreaker() {
-        return CircuitBreaker.of("teams", CircuitBreakerConfig.custom()
+        return circuitBreaker("teams");
+    }
+
+    @Bean
+    CircuitBreaker discordCircuitBreaker() {
+        return circuitBreaker("discord");
+    }
+
+    private static CircuitBreaker circuitBreaker(String nombre) {
+        return CircuitBreaker.of(nombre, CircuitBreakerConfig.custom()
                 .slidingWindowType(CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
                 .slidingWindowSize(10)
                 .failureRateThreshold(50)

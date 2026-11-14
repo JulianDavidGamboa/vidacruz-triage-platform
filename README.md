@@ -44,6 +44,7 @@ Levanta PostgreSQL, Kafka (modo KRaft), la creación de los topics, Redis y los 
 | `TRIAGE_SLA_MONITOR_ENABLED` | No | `false` apaga el scheduler (por defecto `true`) |
 | `LLM_API_KEY` | Con el asistente | Clave del proveedor de LLM. Nunca se versiona |
 | `TEAMS_WEBHOOK_URL` | Con alertas | Webhook de Teams. Vacío: solo registro en log |
+| `DISCORD_WEBHOOK_URL` | Con alertas | Webhook de Discord (opcional). Vacío: solo registro en log |
 
 Los SLA por nivel están en `services/triage-service/src/main/resources/application.yml` (`triage.sla.minutos`).
 
